@@ -32,12 +32,14 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class Options extends io.beautifier.core.Options {
 
+	/**
+	 * For the {@code preserve-inline} style, see {@link #brace_preserve_inline}.
+	 */
 	public enum BraceStyle {
 		collapse,
 		expand,
 		endExpand,
 		none,
-		preserveInline,
 	}
 
 	public enum OperatorPosition {
