@@ -79,7 +79,6 @@ public class InputScanner {
 	}
 
 	public @Nullable String peek(int index) {
-		Character val = null;
 		index += this.__position;
 		if (index >= 0 && index < this.__input_length) {
 			return Character.toString(this.__input.charAt(index));

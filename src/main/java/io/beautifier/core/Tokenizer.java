@@ -147,10 +147,6 @@ public class Tokenizer<E extends Enum<?>, T extends Token<E, T>> {
 		return false;
 	}
 
-	protected T _create_token(E type, char text) {
-		return _create_token(type, Character.toString(text));
-	}
-
 	protected T _create_token(E type, String text) {
 		var token = tokenSupplier.createToken(type, text,
 			this._patterns.whitespace.newline_count,

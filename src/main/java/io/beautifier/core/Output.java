@@ -407,6 +407,10 @@ public class Output {
 		return set_indent(0, 0);
 	}
 
+	public boolean set_indent(int indent) {
+		return set_indent(indent, 0);
+	}
+
 	public boolean set_indent(int indent, int alignment) {
 		// Next line stores alignment values
 		this.next_line.set_indent(indent, alignment);
