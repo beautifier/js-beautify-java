@@ -58,6 +58,7 @@ public class Token<E extends Enum<?>, SELF extends Token<E, SELF>> {
 	public Token(E type, String text, int newlines, @Nullable String whitespace_before) {
 		this.type = type;
 		this.text = text;
+		this.newlines = newlines;
 
 		this.whitespace_before = whitespace_before != null ? whitespace_before : "";
 	}

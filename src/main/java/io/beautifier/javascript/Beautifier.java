@@ -119,7 +119,7 @@ public class Beautifier {
 
 	private static boolean all_lines_start_with(List<String> lines, String c) {
 		for (String line : lines) {
-			if (!line.startsWith(c)) {
+			if (!line.trim().startsWith(c)) {
 				return false;
 			}
 		}

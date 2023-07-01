@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,7 +90,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	private static final Pattern dot_pattern = Pattern.compile("[^\\d\\.]");
 
 	static final @NonNull String[] positionable_operators = 
-		(">>> == !== &&= ??= ||= " +
+		(">>> === !== &&= ??= ||= " +
 		"<< && >= ** != == <= >> || ?? |> " +
 		"< / - + > : & % ? ^ | *").split(" ");
 
@@ -100,7 +101,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		// Also, you must update possitionable operators separately from punct
 		String punct =
 			">>>= " +
-			"... >>= <<= == >>> !== **= &&= ??= ||= " +
+			"... >>= <<= === >>> !== **= &&= ??= ||= " +
 			"=> ^= :: /= << <= == && -= >= >> != -- += ** || ?? ++ %= &= *= |= |> " +
 			"= ! ? > < : / ^ - + * & % ~ |";
 		punct = punct.replaceAll("[-\\[\\]{}()*+?.,^$|#]", "\\\\$0");
@@ -160,14 +161,14 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			// comment ends just before nearest linefeed or end of file
 			this.comment = pattern_reader.starting_with(Pattern.compile("\\/\\/")).until(Pattern.compile("[\n\r\u2028\u2029]"));
 			//  /* ... */ comment ends with nearest */ or end of file
-			this.block_comment = pattern_reader.starting_with(Pattern.compile("\\/\\*")).until_after(Pattern.compile("\\*\\/"));
+			this.block_comment = pattern_reader.starting_with(Pattern.compile("/\\*")).until_after(Pattern.compile("\\*/"));
 			this.html_comment_start = pattern_reader.matching(Pattern.compile("<!--"));
 			this.html_comment_end = pattern_reader.matching(Pattern.compile("-->"));
 			this.include = pattern_reader.starting_with(Pattern.compile("#include")).until_after(Acorn.lineBreak);
 			this.shebang = pattern_reader.starting_with(Pattern.compile("#!")).until_after(Acorn.lineBreak);
-			this.xml = pattern_reader.matching(Pattern.compile("[\\s\\S]*?<(/?)([-a-zA-Z:0-9_.]+|\\{[^}]+?}|!\\[CDATA\\[[^\\]]*?\\]\\]|)(\\s*\\{[^}]+?}|\\s+[-a-zA-Z:0-9_.]+|\\s+[-a-zA-Z:0-9_.]+\\s*=\\s*('[^']*'|\"[^\"]*\"|\\{([^{}]|\\{[^}]+?})+?}))*\\s*(\\/?)\\s*>"));
-			this.single_quote = templatable.until(Pattern.compile("['\\\n\r\u2028\u2029]"));
-			this.double_quote = templatable.until(Pattern.compile("[\"\\\n\r\u2028\u2029]"));
+			this.xml = pattern_reader.matching(Pattern.compile("[\\s\\S]*?<(/?)([-a-zA-Z:0-9_.]+|\\{[^}]+?}|!\\[CDATA\\[[^\\]]*?\\]\\]|)(\\s*\\{[^}]+?}|\\s+[-a-zA-Z:0-9_.]+|\\s+[-a-zA-Z:0-9_.]+\\s*=\\s*('[^']*'|\"[^\"]*\"|\\{([^{}]|\\{[^}]+?})+?}))*\\s*(/?)\\s*>"));
+			this.single_quote = templatable.until(Pattern.compile("['\\\\\n\r\u2028\u2029]"));
+			this.double_quote = templatable.until(Pattern.compile("[\"\\\\\n\r\u2028\u2029]"));
 			this.template_text = templatable.until(Pattern.compile("[`\\$]"));
 			this.template_expression = templatable.until(Pattern.compile("[`}\\\\]"));
 		}
@@ -291,7 +292,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			token = this._create_token(TOKEN.END_BLOCK, c);
 		} else if (";".equals(c)) {
 			token = this._create_token(TOKEN.SEMICOLON, c);
-		} else if (".".equals(c) && dot_pattern.matcher(this._input.peek(1)).find()) {
+		} else if (".".equals(c) && dot_pattern.matcher(Objects.toString(this._input.peek(1), "")).find()) {
 			token = this._create_token(TOKEN.DOT, c);
 		} else if (",".equals(c)) {
 			token = this._create_token(TOKEN.COMMA, c);
@@ -408,7 +409,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 				// peek for comment /* ... */
 				comment = this.__patterns.block_comment.read();
 				var directives = directives_core.get_directives(comment);
-				if (directives != null && directives.get("ignore").equals("start")) {
+				if (directives != null && "start".equals(directives.get("ignore"))) {
 					comment += directives_core.readIgnored(this._input);
 				}
 				comment = comment.replaceAll(Acorn.lineBreak.pattern(), "\n");
@@ -508,15 +509,15 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			//
 			if (match != null) {
 				// Trim root tag to attempt to
-				var rootTag = match.group(2).replaceFirst("^{\\s+", "{").replaceFirst("\\s+}$", "}");
+				var rootTag = match.group(2).replaceFirst("^\\{\\s+", "{").replaceFirst("\\s+}$", "}");
 				var isCurlyRoot = rootTag.indexOf('{') == 0;
 				var depth = 0;
 				while (match != null) {
 					var isEndTag = match.group(1) != null && !match.group(1).isEmpty();
 					var tagName = match.group(2);
-					var isSingletonTag = (match.group(match.groupCount() - 1) != null && !match.group(match.groupCount() - 1).isEmpty()) || (tagName.length() >= 8 && tagName.substring(0, 8).equals("![CDATA["));
+					var isSingletonTag = (match.group(match.groupCount()) != null && !match.group(match.groupCount()).isEmpty()) || (tagName.length() >= 8 && tagName.substring(0, 8).equals("![CDATA["));
 					if (!isSingletonTag &&
-					(tagName.equals(rootTag) || (isCurlyRoot && !tagName.replaceFirst("^{\s+", "{").replaceFirst("\\s+}$", "}").isEmpty()))) {
+					(tagName.equals(rootTag) || (isCurlyRoot && !tagName.replaceFirst("^\\{\s+", "{").replaceFirst("\\s+}$", "}").isEmpty()))) {
 						if (isEndTag) {
 							--depth;
 						} else {
@@ -555,7 +556,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		while (input_scan.hasNext()) {
 			// Keep any whitespace, non-slash characters
 			// also keep slash pairs.
-			matched = input_scan.match(Pattern.compile("([\s]|[^\\]|\\\\)+"));
+			matched = input_scan.match(Pattern.compile("([\\s]|[^\\\\]|\\\\\\\\)+"));
 
 			if (matched != null) {
 				out.append(matched.group());
@@ -629,7 +630,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		var resulting_string = pattern.read();
 		while (this._input.hasNext()) {
 			String next = this._input.next();
-			if (next.equals(delimiter) ||
+			if (delimiter.equals(next) ||
 				(!allow_unescaped_newlines && Acorn.newline.matcher(next).find()))
 			{
 				this._input.back();
@@ -643,20 +644,20 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 					this._input.next();
 				}
 
-				resulting_string += this._input.next();
+				next += this._input.next();
 			} else if (start_sub != null) {
 				if (start_sub.equals("${") && "$".equals(next) && "{".equals(this._input.peek())) {
-					resulting_string += this._input.next();
+					next += this._input.next();
 				}
 
 				if (start_sub.equals(next)) {
 					if ("`".equals(delimiter)) {
-						resulting_string += this._read_string_recursive("}", allow_unescaped_newlines, "`");
+						next += this._read_string_recursive("}", allow_unescaped_newlines, "`");
 					} else {
-						resulting_string += this._read_string_recursive("`", allow_unescaped_newlines, "${");
+						next += this._read_string_recursive("`", allow_unescaped_newlines, "${");
 					}
 					if (this._input.hasNext()) {
-						resulting_string += this._input.next();
+						next += this._input.next();
 					}
 				}
 			}
