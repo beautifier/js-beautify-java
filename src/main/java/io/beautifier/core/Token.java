@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,29 +25,41 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-function Token(type, text, newlines, whitespace_before) {
-  this.type = type;
-  this.text = text;
+import java.util.Map;
 
-  // comments_before are
-  // comments that have a new line before them
-  // and may or may not have a newline after
-  // this is a set of comments before
-  this.comments_before = null; /* inline comment*/
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
+@NonNullByDefault
+public class Token<E extends Enum<?>, SELF extends Token<E, SELF>> {
+	
+	public E type;
+	public final String text;
+	// comments_before are
+	// comments that have a new line before them
+	// and may or may not have a newline after
+	// this is a set of comments before
+	public @Nullable TokenStream<E, SELF> comments_before; /* inline comment*/
+	public int newlines;
+	public String whitespace_before;
+	public @Nullable SELF parent;
+	public @Nullable SELF next;
+	public @Nullable SELF previous;
+	public @Nullable SELF opened;
+	public @Nullable SELF closed;
+	public @Nullable Map<String, String> directives;
 
-  // this.comments_after =  new TokenStream(); // no new line before and newline after
-  this.newlines = newlines || 0;
-  this.whitespace_before = whitespace_before || '';
-  this.parent = null;
-  this.next = null;
-  this.previous = null;
-  this.opened = null;
-  this.closed = null;
-  this.directives = null;
+	public Token(E type, String text) {
+		this(type, text, 0, null);
+	}
+
+	public Token(E type, String text, int newlines, @Nullable String whitespace_before) {
+		this.type = type;
+		this.text = text;
+
+		this.whitespace_before = whitespace_before != null ? whitespace_before : "";
+	}
+
 }
-
-
-module.exports.Token = Token;

@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,167 +25,173 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-var regexp_has_sticky = RegExp.prototype.hasOwnProperty('sticky');
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-function InputScanner(input_string) {
-  this.__input = input_string || '';
-  this.__input_length = this.__input.length;
-  this.__position = 0;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+@NonNullByDefault
+public class InputScanner {
+
+	private String __input;
+	private int __input_length;
+	private int __position = 0;
+
+	public InputScanner(String input_string) {
+		this.__input = input_string != null ? input_string : "";
+		this.__input_length = this.__input.length();
+		this.__position = 0;
+	}
+
+	public void restart() {
+		this.__position = 0;
+	}
+
+	public void back() {
+		if (this.__position > 0) {
+			this.__position -= 1;
+		}
+	}
+
+	public boolean hasNext() {
+		return this.__position < this.__input_length;
+	}
+
+	public @Nullable String next() {
+		if (this.hasNext()) {
+			Character val = this.__input.charAt(this.__position);
+			this.__position += 1;
+			return Character.toString(val);
+		} else {
+			return null;
+		}
+	}
+
+	public @Nullable String peek() {
+		return peek(0);
+	}
+
+	public @Nullable String peek(int index) {
+		Character val = null;
+		index += this.__position;
+		if (index >= 0 && index < this.__input_length) {
+			return Character.toString(this.__input.charAt(index));
+		} else {
+			return null;
+		}
+	}
+
+	// This is a JavaScript only helper function (not in python)
+	// Javascript doesn't have a match method
+	// and not all implementation support "sticky" flag.
+	// If they do not support sticky then both this.match() and this.test() method
+	// must get the match and check the index of the match.
+	// If sticky is supported and set, this method will use it.
+	// Otherwise it will check that global is set, and fall back to the slower method.
+	private @Nullable Matcher __match(Pattern pattern, int index) {
+		Matcher matcher = pattern.matcher(__input);
+		matcher.region(index, __input_length);
+
+		if (matcher.lookingAt()) {
+			return matcher;
+		} else {
+			return null;
+		}
+	}
+
+	public boolean test(Pattern pattern, int index) {
+		index += this.__position;
+
+		if (index >= 0 && index < this.__input_length) {
+			return this.__match(pattern, index) != null;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean testChar(Pattern pattern) {
+		return testChar(pattern, 0);
+	}
+
+	public boolean testChar(Pattern pattern, int index) {
+		// test one character regex match
+		String val = this.peek(index);
+		return val != null && pattern.matcher(val).matches();
+	}
+
+	public @Nullable Matcher match(Pattern pattern) {
+		Matcher pattern_match = this.__match(pattern, this.__position);
+		if (pattern_match != null) {
+			this.__position += pattern_match.group().length();
+			return pattern_match;
+		} else {
+			return null;
+		}
+	}
+
+	public String read(@Nullable Pattern starting_pattern) {
+		return read(starting_pattern, null, false);
+	}
+
+	public String read(@Nullable Pattern starting_pattern, @Nullable Pattern until_pattern) {
+		return read(starting_pattern, until_pattern, false);
+	}
+
+	public String read(@Nullable Pattern starting_pattern, @Nullable Pattern until_pattern, boolean until_after) {
+		final StringBuilder val = new StringBuilder();
+		Matcher match = null;
+		if (starting_pattern != null) {
+			match = this.match(starting_pattern);
+			if (match != null) {
+				val.append(match.group());
+			}
+		}
+		if (until_pattern != null && (match != null || starting_pattern == null)) {
+			val.append(this.readUntil(until_pattern, until_after));
+		}
+		return val.toString();
+	}
+
+	public String readUntil(Pattern pattern) {
+		return readUntil(pattern, false);
+	}
+
+	public String readUntil(Pattern pattern, boolean until_after) {
+		var match_index = this.__position;
+
+		var pattern_match = pattern.matcher(this.__input);
+		if (pattern_match.find(this.__position)) {
+			match_index = pattern_match.start();
+			if (until_after) {
+				match_index += pattern_match.group().length();
+			}
+		} else {
+			match_index = this.__input_length;
+		}
+
+		var val = this.__input.substring(this.__position, match_index);
+		this.__position = match_index;
+		return val;
+	}
+
+	public String readUntilAfter(Pattern pattern) {
+		return this.readUntil(pattern, true);
+	}
+
+	/* css beautifier legacy helpers */
+	public String peekUntilAfter(Pattern pattern) {
+		var start = this.__position;
+		var val = this.readUntilAfter(pattern);
+		this.__position = start;
+		return val;
+	}
+
+	public boolean lookBack(String testVal) {
+		var start = this.__position - 1;
+		return start >= testVal.length() && this.__input.substring(start - testVal.length(), start)
+			.toLowerCase().equals(testVal);
+	}
 }
-
-InputScanner.prototype.restart = function() {
-  this.__position = 0;
-};
-
-InputScanner.prototype.back = function() {
-  if (this.__position > 0) {
-    this.__position -= 1;
-  }
-};
-
-InputScanner.prototype.hasNext = function() {
-  return this.__position < this.__input_length;
-};
-
-InputScanner.prototype.next = function() {
-  var val = null;
-  if (this.hasNext()) {
-    val = this.__input.charAt(this.__position);
-    this.__position += 1;
-  }
-  return val;
-};
-
-InputScanner.prototype.peek = function(index) {
-  var val = null;
-  index = index || 0;
-  index += this.__position;
-  if (index >= 0 && index < this.__input_length) {
-    val = this.__input.charAt(index);
-  }
-  return val;
-};
-
-// This is a JavaScript only helper function (not in python)
-// Javascript doesn't have a match method
-// and not all implementation support "sticky" flag.
-// If they do not support sticky then both this.match() and this.test() method
-// must get the match and check the index of the match.
-// If sticky is supported and set, this method will use it.
-// Otherwise it will check that global is set, and fall back to the slower method.
-InputScanner.prototype.__match = function(pattern, index) {
-  pattern.lastIndex = index;
-  var pattern_match = pattern.exec(this.__input);
-
-  if (pattern_match && !(regexp_has_sticky && pattern.sticky)) {
-    if (pattern_match.index !== index) {
-      pattern_match = null;
-    }
-  }
-
-  return pattern_match;
-};
-
-InputScanner.prototype.test = function(pattern, index) {
-  index = index || 0;
-  index += this.__position;
-
-  if (index >= 0 && index < this.__input_length) {
-    return !!this.__match(pattern, index);
-  } else {
-    return false;
-  }
-};
-
-InputScanner.prototype.testChar = function(pattern, index) {
-  // test one character regex match
-  var val = this.peek(index);
-  pattern.lastIndex = 0;
-  return val !== null && pattern.test(val);
-};
-
-InputScanner.prototype.match = function(pattern) {
-  var pattern_match = this.__match(pattern, this.__position);
-  if (pattern_match) {
-    this.__position += pattern_match[0].length;
-  } else {
-    pattern_match = null;
-  }
-  return pattern_match;
-};
-
-InputScanner.prototype.read = function(starting_pattern, until_pattern, until_after) {
-  var val = '';
-  var match;
-  if (starting_pattern) {
-    match = this.match(starting_pattern);
-    if (match) {
-      val += match[0];
-    }
-  }
-  if (until_pattern && (match || !starting_pattern)) {
-    val += this.readUntil(until_pattern, until_after);
-  }
-  return val;
-};
-
-InputScanner.prototype.readUntil = function(pattern, until_after) {
-  var val = '';
-  var match_index = this.__position;
-  pattern.lastIndex = this.__position;
-  var pattern_match = pattern.exec(this.__input);
-  if (pattern_match) {
-    match_index = pattern_match.index;
-    if (until_after) {
-      match_index += pattern_match[0].length;
-    }
-  } else {
-    match_index = this.__input_length;
-  }
-
-  val = this.__input.substring(this.__position, match_index);
-  this.__position = match_index;
-  return val;
-};
-
-InputScanner.prototype.readUntilAfter = function(pattern) {
-  return this.readUntil(pattern, true);
-};
-
-InputScanner.prototype.get_regexp = function(pattern, match_from) {
-  var result = null;
-  var flags = 'g';
-  if (match_from && regexp_has_sticky) {
-    flags = 'y';
-  }
-  // strings are converted to regexp
-  if (typeof pattern === "string" && pattern !== '') {
-    // result = new RegExp(pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), flags);
-    result = new RegExp(pattern, flags);
-  } else if (pattern) {
-    result = new RegExp(pattern.source, flags);
-  }
-  return result;
-};
-
-InputScanner.prototype.get_literal_regexp = function(literal_string) {
-  return RegExp(literal_string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
-};
-
-/* css beautifier legacy helpers */
-InputScanner.prototype.peekUntilAfter = function(pattern) {
-  var start = this.__position;
-  var val = this.readUntilAfter(pattern);
-  this.__position = start;
-  return val;
-};
-
-InputScanner.prototype.lookBack = function(testVal) {
-  var start = this.__position - 1;
-  return start >= testVal.length && this.__input.substring(start - testVal.length, start)
-    .toLowerCase() === testVal;
-};
-
-module.exports.InputScanner = InputScanner;

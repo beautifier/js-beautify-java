@@ -25,58 +25,26 @@
   SOFTWARE.
 */
 
-
-package io.beautifier.core;
-
-import java.util.EnumSet;
+package io.beautifier.javascript;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+import io.beautifier.javascript.Tokenizer.TOKEN;
 
 @NonNullByDefault
-public class Options {
+public class Token extends io.beautifier.core.Token<Tokenizer.TOKEN, Token> {
 
-	public enum TemplateLanguage {
-		auto,
-		none,
-		django,
-		erb,
-		handlebars,
-		php,
-		smarty,
+	public Token(TOKEN type, String text) {
+		super(type, text);
 	}
 
-	public boolean disabled;
-	public String eol = "auto";
-	boolean end_with_newline;
-	int indent_size = 4;
-	String indent_char = " ";
-	int indent_level;
-	public boolean preserve_newlines = true;
-	public int max_preserve_newlines = 32768;
-	boolean indent_with_tabs;
-	public int wrap_line_length;
-	boolean indent_empty_lines;
-	EnumSet<TemplateLanguage> templating = EnumSet.of(TemplateLanguage.auto);
-
-	public void prepare() {
-		if (!this.preserve_newlines) {
-			this.max_preserve_newlines = 0;
-		}
-
-		if (this.indent_with_tabs) {
-			this.indent_char = "\t";
-
-			// indent_size behavior changed after 1.8.6
-			// It used to be that indent_size would be
-			// set to 1 for indent_with_tabs. That is no longer needed and
-			// actually doesn't make sense - why not use spaces? Further,
-			// that might produce unexpected behavior - tabs being used
-			// for single-column alignment. So, when indent_with_tabs is true
-			// and indent_size is 1, reset indent_size to 4.
-			if (this.indent_size == 1) {
-				this.indent_size = 4;
-			}
-		}
+	public Token(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
+		super(type, text, newlines, whitespace_before);
 	}
 
+	static Token createToken(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
+		return new Token(type, text, newlines, whitespace_before);
+	}
+	
 }

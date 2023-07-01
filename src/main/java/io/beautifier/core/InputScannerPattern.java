@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,69 +25,94 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-function Pattern(input_scanner, parent) {
-  this._input = input_scanner;
-  this._starting_pattern = null;
-  this._match_pattern = null;
-  this._until_pattern = null;
-  this._until_after = false;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-  if (parent) {
-    this._starting_pattern = this._input.get_regexp(parent._starting_pattern, true);
-    this._match_pattern = this._input.get_regexp(parent._match_pattern, true);
-    this._until_pattern = this._input.get_regexp(parent._until_pattern);
-    this._until_after = parent._until_after;
-  }
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+@NonNullByDefault
+public class InputScannerPattern {
+
+	protected InputScanner _input;
+	protected @Nullable Pattern _starting_pattern;
+	protected @Nullable Pattern _match_pattern;
+	protected @Nullable Pattern _until_pattern;
+	protected boolean _until_after;
+
+	public InputScannerPattern(InputScanner input_scanner) {
+		this(input_scanner, null);
+	}
+	
+	public InputScannerPattern(InputScanner input_scanner, @Nullable InputScannerPattern parent) {
+		this._input = input_scanner;
+		this._starting_pattern = null;
+		this._match_pattern = null;
+		this._until_pattern = null;
+		this._until_after = false;
+
+		if (parent != null) {
+			this._starting_pattern = parent._starting_pattern;
+			this._match_pattern = parent._match_pattern;
+			this._until_pattern = parent._until_pattern;
+			this._until_after = parent._until_after;
+		}
+	}
+
+	public String read() {
+		var result = this._input.read(this._starting_pattern);
+		if (this._starting_pattern == null || !result.isEmpty()) {
+			result += this._input.read(this._match_pattern, this._until_pattern, this._until_after);
+		}
+		return result;
+	}
+
+	public @Nullable Matcher read_match() {
+		final Pattern matchPattern = this._match_pattern;
+		if (matchPattern != null) {
+			return this._input.match(matchPattern);
+		} else {
+			return null;
+		}
+	}
+
+	public InputScannerPattern until_after(Pattern pattern) {
+		var result = this._create();
+		result._until_after = true;
+		result._until_pattern = pattern;
+		result._update();
+		return result;
+	}
+
+	public InputScannerPattern until(Pattern pattern) {
+		var result = this._create();
+		result._until_after = false;
+		result._until_pattern = pattern;
+		result._update();
+		return result;
+	}
+
+	public InputScannerPattern starting_with(Pattern pattern) {
+		var result = this._create();
+		result._starting_pattern = pattern;
+		result._update();
+		return result;
+	}
+
+	public InputScannerPattern matching(Pattern pattern) {
+		var result = this._create();
+		result._match_pattern = pattern;
+		result._update();
+		return result;
+	}
+
+	protected InputScannerPattern _create() {
+		return new InputScannerPattern(this._input, this);
+	}
+
+	protected void _update() {
+
+	}
 }
-
-Pattern.prototype.read = function() {
-  var result = this._input.read(this._starting_pattern);
-  if (!this._starting_pattern || result) {
-    result += this._input.read(this._match_pattern, this._until_pattern, this._until_after);
-  }
-  return result;
-};
-
-Pattern.prototype.read_match = function() {
-  return this._input.match(this._match_pattern);
-};
-
-Pattern.prototype.until_after = function(pattern) {
-  var result = this._create();
-  result._until_after = true;
-  result._until_pattern = this._input.get_regexp(pattern);
-  result._update();
-  return result;
-};
-
-Pattern.prototype.until = function(pattern) {
-  var result = this._create();
-  result._until_after = false;
-  result._until_pattern = this._input.get_regexp(pattern);
-  result._update();
-  return result;
-};
-
-Pattern.prototype.starting_with = function(pattern) {
-  var result = this._create();
-  result._starting_pattern = this._input.get_regexp(pattern, true);
-  result._update();
-  return result;
-};
-
-Pattern.prototype.matching = function(pattern) {
-  var result = this._create();
-  result._match_pattern = this._input.get_regexp(pattern, true);
-  result._update();
-  return result;
-};
-
-Pattern.prototype._create = function() {
-  return new Pattern(this._input, this);
-};
-
-Pattern.prototype._update = function() {};
-
-module.exports.Pattern = Pattern;

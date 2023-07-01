@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,37 +25,51 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-function Directives(start_block_pattern, end_block_pattern) {
-  start_block_pattern = typeof start_block_pattern === 'string' ? start_block_pattern : start_block_pattern.source;
-  end_block_pattern = typeof end_block_pattern === 'string' ? end_block_pattern : end_block_pattern.source;
-  this.__directives_block_pattern = new RegExp(start_block_pattern + / beautify( \w+[:]\w+)+ /.source + end_block_pattern, 'g');
-  this.__directive_pattern = / (\w+)[:](\w+)/g;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-  this.__directives_end_ignore_pattern = new RegExp(start_block_pattern + /\sbeautify\signore:end\s/.source + end_block_pattern, 'g');
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+@NonNullByDefault
+public class Directives {
+	
+	private Pattern __directives_block_pattern;
+	private Pattern __directive_pattern;
+	private Pattern __directives_end_ignore_pattern;
+
+	public Directives(String start_block_pattern, String end_block_pattern) {
+		this.__directives_block_pattern = Pattern.compile(start_block_pattern + " beautify( \\w+[:]\\w+)+ " + end_block_pattern);
+		this.__directive_pattern = Pattern.compile(" (\\w+)[:](\\w+)");
+		this.__directives_end_ignore_pattern = Pattern.compile(start_block_pattern + "\\sbeautify\\signore:end\\s" + end_block_pattern);
+	}
+
+	public Directives(Pattern start_block_pattern, Pattern end_block_pattern) {
+		this(start_block_pattern.pattern(), end_block_pattern.pattern());
+	}
+
+	public @Nullable Map<String, String> get_directives(String text) {
+		Matcher matcher = this.__directives_block_pattern.matcher(text);
+		if (!matcher.matches()) {
+			return null;
+		}
+
+		final Map<String, String> directives = new HashMap<>();
+
+		matcher = __directive_pattern.matcher(text);
+		while (matcher.find()) {
+			directives.put(matcher.group(1), matcher.group(2));
+		}
+
+		return directives;
+	}
+
+	public String readIgnored(InputScanner input) {
+		return input.readUntilAfter(this.__directives_end_ignore_pattern);
+	}
+	
 }
-
-Directives.prototype.get_directives = function(text) {
-  if (!text.match(this.__directives_block_pattern)) {
-    return null;
-  }
-
-  var directives = {};
-  this.__directive_pattern.lastIndex = 0;
-  var directive_match = this.__directive_pattern.exec(text);
-
-  while (directive_match) {
-    directives[directive_match[1]] = directive_match[2];
-    directive_match = this.__directive_pattern.exec(text);
-  }
-
-  return directives;
-};
-
-Directives.prototype.readIgnored = function(input) {
-  return input.readUntilAfter(this.__directives_end_ignore_pattern);
-};
-
-
-module.exports.Directives = Directives;

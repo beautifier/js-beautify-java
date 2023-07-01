@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,115 +25,140 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-var InputScanner = require('../core/inputscanner').InputScanner;
-var Token = require('../core/token').Token;
-var TokenStream = require('../core/tokenstream').TokenStream;
-var WhitespacePattern = require('./whitespacepattern').WhitespacePattern;
+import java.util.Stack;
+import java.util.regex.Pattern;
 
-var TOKEN = {
-  START: 'TK_START',
-  RAW: 'TK_RAW',
-  EOF: 'TK_EOF'
-};
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
-var Tokenizer = function(input_string, options) {
-  this._input = new InputScanner(input_string);
-  this._options = options || {};
-  this.__tokens = null;
+@NonNullByDefault
+public class Tokenizer<E extends Enum<?>, T extends Token<E, T>> {
 
-  this._patterns = {};
-  this._patterns.whitespace = new WhitespacePattern(this._input);
-};
+	private final E TOKEN_START;
+	private final E TOKEN_RAW;
+	private final E TOKEN_EOF;
+	private final TokenSupplier<E, T> tokenSupplier;
 
-Tokenizer.prototype.tokenize = function() {
-  this._input.restart();
-  this.__tokens = new TokenStream();
+	protected final InputScanner _input;
+	private @Nullable Options _options;
+	private @Nullable TokenStream<E, T> __tokens;
+	protected final Patterns _patterns;
 
-  this._reset();
+	protected static class Patterns {
 
-  var current;
-  var previous = new Token(TOKEN.START, '');
-  var open_token = null;
-  var open_stack = [];
-  var comments = new TokenStream();
+		public WhitespacePattern whitespace;
 
-  while (previous.type !== TOKEN.EOF) {
-    current = this._get_next_token(previous, open_token);
-    while (this._is_comment(current)) {
-      comments.add(current);
-      current = this._get_next_token(previous, open_token);
-    }
+		Patterns(WhitespacePattern whitespace) {
+			this.whitespace = whitespace;
+		}
 
-    if (!comments.isEmpty()) {
-      current.comments_before = comments;
-      comments = new TokenStream();
-    }
+	}
 
-    current.parent = open_token;
+	public Tokenizer(String input_string, TokenSupplier<E, T> tokenSupplier, E TOKEN_START, E TOKEN_RAW, E TOKEN_EOF, @Nullable Options options) {
+		this._input = new InputScanner(input_string);
+		this._options = options;
+		this.tokenSupplier = tokenSupplier;
+		this.TOKEN_START = TOKEN_START;
+		this.TOKEN_RAW = TOKEN_RAW;
+		this.TOKEN_EOF = TOKEN_EOF;
+		this.__tokens = null;
 
-    if (this._is_opening(current)) {
-      open_stack.push(open_token);
-      open_token = current;
-    } else if (open_token && this._is_closing(current, open_token)) {
-      current.opened = open_token;
-      open_token.closed = current;
-      open_token = open_stack.pop();
-      current.parent = open_token;
-    }
+		this._patterns = new Patterns(new WhitespacePattern(this._input));
+	}
 
-    current.previous = previous;
-    previous.next = current;
+	public TokenStream<E, T> tokenize() {
+		this._input.restart();
+		this.__tokens = new TokenStream<>();
 
-    this.__tokens.add(current);
-    previous = current;
-  }
+		this._reset();
 
-  return this.__tokens;
-};
+		@Nullable T current = null;
+		var previous = tokenSupplier.createToken(TOKEN_START, "", 0, null);
+		@Nullable T open_token = null;
+		final Stack<T> open_stack = new Stack<>();
+		var comments = new TokenStream<E, T>();
 
+		while (previous.type != TOKEN_EOF) {
+			current = this._get_next_token(previous, open_token);
+			while (this._is_comment(current)) {
+				comments.add(current);
+				current = this._get_next_token(previous, open_token);
+			}
 
-Tokenizer.prototype._is_first_token = function() {
-  return this.__tokens.isEmpty();
-};
+			if (!comments.isEmpty()) {
+				current.comments_before = comments;
+				comments = new TokenStream<E, T>();
+			}
 
-Tokenizer.prototype._reset = function() {};
+			current.parent = open_token;
 
-Tokenizer.prototype._get_next_token = function(previous_token, open_token) { // jshint unused:false
-  this._readWhitespace();
-  var resulting_string = this._input.read(/.+/g);
-  if (resulting_string) {
-    return this._create_token(TOKEN.RAW, resulting_string);
-  } else {
-    return this._create_token(TOKEN.EOF, '');
-  }
-};
+			if (this._is_opening(current)) {
+				open_stack.push(open_token);
+				open_token = current;
+			} else if (open_token != null && this._is_closing(current, open_token)) {
+				current.opened = open_token;
+				open_token.closed = current;
+				open_token = open_stack.pop();
+				current.parent = open_token;
+			}
 
-Tokenizer.prototype._is_comment = function(current_token) { // jshint unused:false
-  return false;
-};
+			current.previous = previous;
+			previous.next = current;
 
-Tokenizer.prototype._is_opening = function(current_token) { // jshint unused:false
-  return false;
-};
+			this.__tokens.add(current);
+			previous = current;
+		}
 
-Tokenizer.prototype._is_closing = function(current_token, open_token) { // jshint unused:false
-  return false;
-};
-
-Tokenizer.prototype._create_token = function(type, text) {
-  var token = new Token(type, text,
-    this._patterns.whitespace.newline_count,
-    this._patterns.whitespace.whitespace_before_token);
-  return token;
-};
-
-Tokenizer.prototype._readWhitespace = function() {
-  return this._patterns.whitespace.read();
-};
+		return this.__tokens;
+	}
 
 
+	protected boolean _is_first_token() {
+		return this.__tokens.isEmpty();
+	}
 
-module.exports.Tokenizer = Tokenizer;
-module.exports.TOKEN = TOKEN;
+	protected void _reset() {
+
+	}
+
+	private static final Pattern GET_NEXT_TOKEN_PATTERN = Pattern.compile(".+");
+
+	protected T _get_next_token(T previous_token, @Nullable T open_token) {
+		this._readWhitespace();
+		var resulting_string = this._input.read(GET_NEXT_TOKEN_PATTERN);
+		if (!resulting_string.isEmpty()) {
+			return this._create_token(TOKEN_RAW, resulting_string);
+		} else {
+			return this._create_token(TOKEN_EOF, "");
+		}
+	}
+
+	protected boolean _is_comment(T current_token) {
+		return false;
+	}
+
+	protected boolean _is_opening(T current_token) {
+		return false;
+	}
+
+	protected boolean _is_closing(T current_token, @Nullable T open_token) {
+		return false;
+	}
+
+	protected T _create_token(E type, char text) {
+		return _create_token(type, Character.toString(text));
+	}
+
+	protected T _create_token(E type, String text) {
+		var token = tokenSupplier.createToken(type, text,
+			this._patterns.whitespace.newline_count,
+			this._patterns.whitespace.whitespace_before_token);
+		return token;
+	}
+
+	protected String _readWhitespace() {
+		return this._patterns.whitespace.read();
+	}
+}

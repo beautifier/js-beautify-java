@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,53 +25,75 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.core;
 
-function TokenStream(parent_token) {
-  // private
-  this.__tokens = [];
-  this.__tokens_length = this.__tokens.length;
-  this.__position = 0;
-  this.__parent_token = parent_token;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
+@NonNullByDefault
+public class TokenStream<E extends Enum<?>, T extends Token<E, T>> {
+
+	private final List<T> __tokens;
+	private int __tokens_length;
+	private int __position;
+	private final @Nullable T __parent_token;
+	
+	public TokenStream() {
+		this(null);
+	}
+
+	public TokenStream(@Nullable T parent_token) {
+		// private
+		this.__tokens = new ArrayList<>();
+		this.__tokens_length = this.__tokens.size();
+		this.__position = 0;
+		this.__parent_token = parent_token;
+	}
+
+	public void restart() {
+		this.__position = 0;
+	}
+
+	public boolean isEmpty() {
+		return this.__tokens_length == 0;
+	}
+
+	public boolean hasNext() {
+		return this.__position < this.__tokens_length;
+	}
+
+	public @Nullable T next() {
+		if (this.hasNext()) {
+			var val = this.__tokens.get(this.__position);
+			this.__position += 1;
+			return val;
+		} else {
+			return null;
+		}
+	}
+
+	public @Nullable T peek() {
+		return peek(0);
+	}
+
+	public @Nullable T peek(int index) {
+		index += this.__position;
+		if (index >= 0 && index < this.__tokens_length) {
+			return this.__tokens.get(index);
+		} else {
+			return null;
+		}
+	}
+
+	public void add(T token) {
+		if (this.__parent_token != null) {
+			token.parent = this.__parent_token;
+		}
+		this.__tokens.add(token);
+		this.__tokens_length += 1;
+	}
+
 }
-
-TokenStream.prototype.restart = function() {
-  this.__position = 0;
-};
-
-TokenStream.prototype.isEmpty = function() {
-  return this.__tokens_length === 0;
-};
-
-TokenStream.prototype.hasNext = function() {
-  return this.__position < this.__tokens_length;
-};
-
-TokenStream.prototype.next = function() {
-  var val = null;
-  if (this.hasNext()) {
-    val = this.__tokens[this.__position];
-    this.__position += 1;
-  }
-  return val;
-};
-
-TokenStream.prototype.peek = function(index) {
-  var val = null;
-  index = index || 0;
-  index += this.__position;
-  if (index >= 0 && index < this.__tokens_length) {
-    val = this.__tokens[index];
-  }
-  return val;
-};
-
-TokenStream.prototype.add = function(token) {
-  if (this.__parent_token) {
-    token.parent = this.__parent_token;
-  }
-  this.__tokens.push(token);
-  this.__tokens_length += 1;
-};
-
-module.exports.TokenStream = TokenStream;
