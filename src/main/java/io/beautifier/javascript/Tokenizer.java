@@ -45,7 +45,7 @@ import io.beautifier.core.InputScannerPattern;
 import io.beautifier.core.TemplatablePattern;
 
 @NonNullByDefault
-public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
+class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 
 	@SafeVarargs
 	static <T> boolean in_array(T what, @NonNull T... arr) {
@@ -58,7 +58,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	}
 
 
-	public enum TOKEN {
+	enum TOKEN {
 		START,
 		RAW,
 		EOF,

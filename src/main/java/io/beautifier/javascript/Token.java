@@ -33,13 +33,13 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.javascript.Tokenizer.TOKEN;
 
 @NonNullByDefault
-public class Token extends io.beautifier.core.Token<Tokenizer.TOKEN, Token> {
+class Token extends io.beautifier.core.Token<Tokenizer.TOKEN, Token> {
 
-	public Token(TOKEN type, String text) {
+	Token(TOKEN type, String text) {
 		super(type, text);
 	}
 
-	public Token(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
+	Token(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
 		super(type, text, newlines, whitespace_before);
 	}
 

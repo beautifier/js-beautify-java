@@ -215,7 +215,7 @@ public class Beautifier {
 		}
 	}
 
-	public Frame create_flags(@Nullable Frame flags_base, MODE mode) {
+	protected Frame create_flags(@Nullable Frame flags_base, MODE mode) {
 		var next_indent_level = 0;
 		if (flags_base != null) {
 			next_indent_level = flags_base.indentation_level;
@@ -229,9 +229,9 @@ public class Beautifier {
 	}
 
 	private String _reset(String source_text) {
-		Matcher matcher = Pattern.compile("^[\t ]*").matcher(source_text);
-		matcher.find();
-		var baseIndentString = matcher.group();
+		final Matcher baseIdentStringMatcher = Pattern.compile("^[\t ]*").matcher(source_text);
+		baseIdentStringMatcher.find();
+		var baseIndentString = baseIdentStringMatcher.group();
 
 		this._last_last_text = ""; // pre-last token text
 		this._output = new Output(this._options, baseIndentString);
@@ -292,11 +292,11 @@ public class Beautifier {
 		return sweet_code;
 	}
 
-	public void handle_token(Token current_token) {
+	protected void handle_token(Token current_token) {
 		handle_token(current_token, false);
 	}
 
-	public void handle_token(Token current_token, boolean preserve_statement_flags) {
+	protected void handle_token(Token current_token, boolean preserve_statement_flags) {
 		switch (current_token.type) {
 		case START_EXPR:
 			this.handle_start_expr(current_token);
@@ -395,11 +395,11 @@ public class Beautifier {
 
 	private static final String[] newline_restricted_tokens = new String[] { "async", "break", "continue", "return", "throw", "yield" };
 
-	public void allow_wrap_or_preserved_newline(Token current_token) {
+	protected void allow_wrap_or_preserved_newline(Token current_token) {
 		allow_wrap_or_preserved_newline(current_token, false);
 	}
 
-	public void allow_wrap_or_preserved_newline(Token current_token, boolean force_linewrap) {
+	protected void allow_wrap_or_preserved_newline(Token current_token, boolean force_linewrap) {
 		// Never wrap the first token on a line
 		if (this._output.just_added_newline()) {
 			return;
@@ -430,15 +430,15 @@ public class Beautifier {
 		}
 	}
 
-	public void print_newline() {
+	protected void print_newline() {
 		print_newline(false, false);
 	}
 
-	public void print_newline(boolean force_newline) {
+	protected void print_newline(boolean force_newline) {
 		print_newline(force_newline, false);
 	}
 
-	public void print_newline(boolean force_newline, boolean preserve_statement_flags) {
+	protected void print_newline(boolean force_newline, boolean preserve_statement_flags) {
 		if (!preserve_statement_flags) {
 			if (!";".equals(this._flags.last_token.text) && !",".equals(this._flags.last_token.text) && !"=".equals(this._flags.last_token.text) && (this._flags.last_token.type != TOKEN.OPERATOR || "--".equals(this._flags.last_token.text) || "++".equals(this._flags.last_token.text))) {
 				var next_token = this._tokens.peek();
@@ -455,7 +455,7 @@ public class Beautifier {
 		}
 	}
 
-	public void print_token_line_indentation(Token current_token) {
+	protected void print_token_line_indentation(Token current_token) {
 		if (this._output.just_added_newline()) {
 			if (this._options.keep_array_indentation &&
 				current_token.newlines != 0 &&
@@ -469,7 +469,7 @@ public class Beautifier {
 		}
 	}
 
-	public void print_token(Token current_token) {
+	protected void print_token(Token current_token) {
 		if (this._output.raw) {
 			this._output.add_raw_token(current_token);
 			return;
@@ -503,12 +503,12 @@ public class Beautifier {
 		}
 	}
 
-	public void indent() {
+	protected void indent() {
 		this._flags.indentation_level += 1;
 		this._output.set_indent(this._flags.indentation_level, this._flags.alignment);
 	}
 
-	public void deindent() {
+	protected void deindent() {
 		if (this._flags.indentation_level > 0 &&
 			((this._flags.parent == null) || this._flags.indentation_level > this._flags.parent.indentation_level)) {
 			this._flags.indentation_level -= 1;
@@ -516,7 +516,7 @@ public class Beautifier {
 		}
 	}
 
-	public void set_mode(MODE mode) {
+	protected void set_mode(MODE mode) {
 		if (this._flags != null) {
 			this._flag_store.add(this._flags);
 			this._previous_flags = this._flags;
@@ -529,7 +529,7 @@ public class Beautifier {
 	}
 
 
-	public void restore_mode() {
+	protected void restore_mode() {
 		if (this._flag_store != null && !this._flag_store.isEmpty()) {
 			this._previous_flags = this._flags;
 			this._flags = this._flag_store.remove(this._flag_store.size() - 1);
@@ -540,12 +540,12 @@ public class Beautifier {
 		}
 	}
 
-	public boolean start_of_object_property() {
+	protected boolean start_of_object_property() {
 		return this._flags.parent.mode == MODE.ObjectLiteral && this._flags.mode == MODE.Statement && (
 			(":".equals(this._flags.last_token.text) && this._flags.ternary_depth == 0) || (reserved_array(this._flags.last_token, "get", "set")));
 	}
 
-	public boolean start_of_statement(Token current_token) {
+	protected boolean start_of_statement(Token current_token) {
 		var start = false;
 		start = start || reserved_array(this._flags.last_token, "var", "let", "const") && current_token.type == TOKEN.WORD;
 		start = start || reserved_word(this._flags.last_token, "do");
@@ -579,7 +579,7 @@ public class Beautifier {
 		return false;
 	}
 
-	public void handle_start_expr(Token current_token) {
+	protected void handle_start_expr(Token current_token) {
 		// The conditional starts the statement if appropriate.
 		if (!this.start_of_statement(current_token)) {
 			this.handle_whitespace_and_comments(current_token);
@@ -706,7 +706,7 @@ public class Beautifier {
 		this.indent();
 	}
 
-	public void handle_end_expr(Token current_token) {
+	protected void handle_end_expr(Token current_token) {
 		// statements inside expressions are not valid syntax, but...
 		// statements must all be closed when their container closes
 		while (this._flags.mode == MODE.Statement) {
@@ -744,7 +744,7 @@ public class Beautifier {
 		}
 	}
 
-	public void handle_start_block(Token current_token) {
+	protected void handle_start_block(Token current_token) {
 		this.handle_whitespace_and_comments(current_token);
 
 		// Check if this is should be treated as a ObjectLiteral
@@ -848,7 +848,7 @@ public class Beautifier {
 		}
 	}
 
-	public void handle_end_block(Token current_token) {
+	protected void handle_end_block(Token current_token) {
 		// statements must all be closed when their container closes
 		this.handle_whitespace_and_comments(current_token);
 

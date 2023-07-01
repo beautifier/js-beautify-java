@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 @NonNullByDefault
-public class Acorn {
+class Acorn {
 
 	private Acorn() {
 		
