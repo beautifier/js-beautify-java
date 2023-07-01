@@ -40,6 +40,10 @@ public class InputScanner {
 	private int __input_length;
 	private int __position = 0;
 
+	public InputScanner() {
+		this(null);
+	}
+	
 	public InputScanner(String input_string) {
 		this.__input = input_string != null ? input_string : "";
 		this.__input_length = this.__input.length();
