@@ -38,7 +38,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true, chain = true)
 @EqualsAndHashCode(callSuper = true)
 @NonNullByDefault
-public class Options extends io.beautifier.core.Options {
+public class Options extends io.beautifier.core.Options<Options> {
 
 	/**
 	 * For the {@code preserve-inline} style, see {@link #brace_preserve_inline}.
