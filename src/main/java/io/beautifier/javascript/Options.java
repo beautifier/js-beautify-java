@@ -28,6 +28,7 @@
 package io.beautifier.javascript;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.json.JSONObject;
 
 @NonNullByDefault
 public class Options extends io.beautifier.core.Options {
@@ -65,6 +66,23 @@ public class Options extends io.beautifier.core.Options {
 	OperatorPosition operator_position = OperatorPosition.beforeNewline;
 	// For testing of beautify preserve:start directive
 	boolean test_output_raw;
+
+	public Options() {
+
+	}
+
+	public void apply(String json) {
+		final JSONObject data = new JSONObject(json);
+		for (String key : data.keySet()) {
+			switch (key) {
+				case "indent_size":
+					this.indent_size = data.getInt("indent_size");
+					break;
+				default:
+					throw new IllegalArgumentException("Unsupported options key: " + key);
+			}
+		}
+	}
 
 	@Override
 	public void prepare() {

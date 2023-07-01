@@ -47,16 +47,16 @@ public class Options {
 
 	public boolean disabled;
 	public String eol = "auto";
-	boolean end_with_newline;
-	int indent_size = 4;
-	String indent_char = " ";
-	int indent_level;
+	public boolean end_with_newline;
+	public int indent_size = 4;
+	public String indent_char = " ";
+	public int indent_level;
 	public boolean preserve_newlines = true;
 	public int max_preserve_newlines = 32768;
-	boolean indent_with_tabs;
+	public boolean indent_with_tabs;
 	public int wrap_line_length;
-	boolean indent_empty_lines;
-	EnumSet<TemplateLanguage> templating = EnumSet.of(TemplateLanguage.auto);
+	public boolean indent_empty_lines;
+	public EnumSet<TemplateLanguage> templating = EnumSet.of(TemplateLanguage.auto);
 
 	public void prepare() {
 		if (!this.preserve_newlines) {

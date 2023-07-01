@@ -145,6 +145,10 @@ public class Beautifier {
 	private @Nullable List<Frame> _flag_store;
 	private Options _options;
 
+	public Beautifier(@Nullable String source_text) {
+		this(source_text, null);
+	}
+	
 	public Beautifier(@Nullable String source_text, @Nullable Options options) {
 		this._source_text = source_text != null ? source_text : "";
 

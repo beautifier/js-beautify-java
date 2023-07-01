@@ -1,0 +1,473 @@
+/*
+{{&header_text}}
+
+  The MIT License (MIT)
+
+  Copyright (c) 2007-2018 Einar Lielmanis, Liam Newman, and contributors.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
+package io.beautifier.javascript;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import io.beautifier.core.Options.TemplateLanguage;
+import io.beautifier.javascript.Options.BraceStyle;
+import io.beautifier.javascript.Options.OperatorPosition;
+
+public class GeneratedTests {
+
+	private Options opts;
+	
+	@BeforeEach
+	void reset_options() {
+		opts = new Options();
+		opts.indent_size = 4;
+		opts.indent_char = " ";
+		opts.preserve_newlines = true;
+		opts.jslint_happy = false;
+		opts.space_before_conditional = true;
+		opts.break_chained_methods = false;
+		// opts.selector_separator = "\n"; // TODO css tests
+		opts.end_with_newline = false;
+
+{{#default_options}}		opts.{{name}} = {{#java_value}}{{&value}}{{/java_value}};
+{{/default_options}}
+	}
+
+	private String test_beautifier(String input)
+	{
+		return new Beautifier(input, opts).beautify();
+	}
+
+	private void test_fragment(String input) {
+		test_fragment(input, null);
+	}
+
+	// test the input on beautifier with the current flag settings
+	// does not check the indentation / surroundings as bt() does
+	private void test_fragment(String input, String expected)
+	{
+		if (expected == null) {
+			expected = input;
+		}
+
+		assertEquals(expected, test_beautifier(input));
+
+		// if the expected is different from input, run it again
+		// expected output should be unchanged when run twice.
+		if (!Objects.equals(input, expected)) {
+			assertEquals(expected, test_beautifier(expected));
+		}
+
+		// Everywhere we do newlines, they should be replaced with opts.eol
+		opts.eol = "\r\n";
+		expected = expected.replaceAll("\n", "\r\n");
+		opts.disabled = true;
+		assertEquals(input != null ? input : "", test_beautifier(input));
+		assertEquals("\n\n" + expected, test_beautifier("\n\n" + expected));
+		opts.disabled = false;
+		assertEquals(expected, test_beautifier(input));
+		if (input != null && input.indexOf('\n') != -1) {
+			input = input.replaceAll("\n", "\r\n");
+			assertEquals(expected, test_beautifier(input));
+			// Ensure support for auto eol detection
+			opts.eol = "auto";
+			assertEquals(expected, test_beautifier(input));
+		}
+		opts.eol = "\n";
+	}
+
+	private void bt(String input) {
+		bt(input, null);
+	}
+
+	// test the input on beautifier with the current flag settings
+	// test both the input as well as { input } wrapping
+	private void bt(String input, String expectation)
+	{
+		String wrapped_input, wrapped_expectation;
+
+		if (expectation == null || expectation.isEmpty()) {
+			expectation = input;
+		}
+		test_fragment(input, expectation);
+
+		// If we set raw, input should be unchanged
+		opts.test_output_raw = true;
+		if (!opts.end_with_newline) {
+			test_fragment(input, input);
+		}
+		opts.test_output_raw = false;
+
+		// test also the returned indentation
+		// e.g if input = "asdf();"
+		// then test that this remains properly formatted as well:
+		// {
+		//     asdf();
+		//     indent;
+		// }
+
+		var current_indent_size = opts.indent_size;
+		if (current_indent_size == 4 && input != null && !input.isEmpty()) {
+			wrapped_input = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(input).replaceAll("    $1") + "\n    foo = bar;\n}";
+			wrapped_expectation = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(expectation).replaceAll("    $1") + "\n    foo = bar;\n}";
+			test_fragment(wrapped_input, wrapped_expectation);
+
+			// If we set raw, input should be unchanged
+			opts.test_output_raw = true;
+			if (!opts.end_with_newline) {
+				test_fragment(wrapped_input, wrapped_input);
+			}
+			opts.test_output_raw = false;
+		}
+	}
+
+	private String expect_open_white;
+	private String expect_close_white;
+
+	// run the tests that need permutation against a specific combination of
+	// pre-opening-brace and pre-closing-brace whitespace
+	private void run_brace_permutation(String test_open_white, String test_close_white) {
+		final String indent_on_wrap_str = "    "; // could use Array(opts.indent_size + 1).join(' '); if we wanted to replace _all_ of the hardcoded 4-space in the test and expectation strings
+
+		String to = test_open_white,
+			tc = test_close_white,
+			eo = expect_open_white != null ? expect_open_white : "".equals(to) ? " " : to,
+			ec = expect_close_white != null ? expect_close_white : "".equals(tc) ? " " : tc,
+			i = "\n".equals(eo) ? indent_on_wrap_str : "";
+
+		bt( "//case 1\nif (a == 1)" + to + "{}\n//case 2\nelse if (a == 2)" + to + "{}",
+			"//case 1\nif (a == 1)" + eo + "{}\n//case 2\nelse if (a == 2)" + eo + "{}");
+		bt( "if(1)" + to + "{2}" + tc + "else" + to + "{3}",
+			"if (1)" + eo + "{\n    2\n}" + ec + "else" + eo + "{\n    3\n}");
+		bt( "try" + to + "{a();}" + tc +
+			"catch(b)" + to + "{c();}" + tc +
+			"catch(d)" + to + "{}" + tc +
+			"finally" + to + "{e();}",
+			// expected
+			"try" + eo + "{\n    a();\n}" + ec +
+			"catch (b)" + eo + "{\n    c();\n}" + ec +
+			"catch (d)" + eo + "{}" + ec +
+			"finally" + eo + "{\n    e();\n}");
+		bt( "if(a)" + to + "{b();}" + tc + "else if(c) foo();",
+			"if (a)" + eo + "{\n    b();\n}" + ec + "else if (c) foo();");
+		// if/else statement with empty body
+		bt( "if (a)" + to + "{\n// comment\n}" + tc + "else" + to + "{\n// comment\n}",
+			"if (a)" + eo + "{\n    // comment\n}" + ec + "else" + eo + "{\n    // comment\n}");
+		bt( "if (x)" + to + "{y}" + tc + "else" + to + "{ if (x)" + to + "{y}}",
+			"if (x)" + eo + "{\n    y\n}" + ec + "else" + eo + "{\n    if (x)" + eo + i + "{\n        y\n    }\n}");
+		bt( "if (a)" + to + "{\nb;\n}" + tc + "else" + to + "{\nc;\n}",
+			"if (a)" + eo + "{\n    b;\n}" + ec + "else" + eo + "{\n    c;\n}");
+		test_fragment("    /*\n* xx\n*/\n// xx\nif (foo)" + to + "{\n    bar();\n}",
+						"    /*\n     * xx\n     */\n    // xx\n    if (foo)" + eo + i + "{\n        bar();\n    }");
+		bt( "if (foo)" + to + "{}" + tc + "else /regex/.test();",
+			"if (foo)" + eo + "{}" + ec + "else /regex/.test();");
+		test_fragment("if (foo)" + to + "{", "if (foo)" + eo + "{");
+		test_fragment("foo" + to + "{", "foo" + eo + "{");
+		test_fragment("return;" + to + "{", "return;\n{");
+		bt( "function x()" + to + "{\n    foo();\n}zzz", "function x()" + eo +"{\n    foo();\n}\nzzz");
+		bt( "var a = new function a()" + to + "{};", "var a = new function a()" + eo + "{};");
+		bt( "var a = new function a()" + to + "    {},\n    b = new function b()" + to + "    {};",
+			"var a = new function a()" + eo + i + "{},\n    b = new function b()" + eo + i + "{};");
+		bt("foo(" + to + "{\n    'a': 1\n},\n10);",
+			"foo(" + (" ".equals(eo) ? "" : eo) + i + "{\n        'a': 1\n    },\n    10);"); // "foo( {..." is a weird case
+		bt("(['foo','bar']).each(function(i)" + to + "{return i;});",
+			"(['foo', 'bar']).each(function(i)" + eo + "{\n    return i;\n});");
+		bt("(function(i)" + to + "{return i;})();", "(function(i)" + eo + "{\n    return i;\n})();");
+
+		bt( "test( /*Argument 1*/" + to + "{\n" +
+			"    'Value1': '1'\n" +
+			"}, /*Argument 2\n" +
+			" */ {\n" +
+			"    'Value2': '2'\n" +
+			"});",
+			// expected
+			"test( /*Argument 1*/" + eo + i + "{\n" +
+			"        'Value1': '1'\n" +
+			"    },\n" +
+			"    /*Argument 2\n" +
+			"     */\n" +
+			"    {\n" +
+			"        'Value2': '2'\n" +
+			"    });");
+
+		bt( "test( /*Argument 1*/" + to + "{\n" +
+			"    'Value1': '1'\n" +
+			"}, /*Argument 2\n" +
+			" */\n" +
+			"{\n" +
+			"    'Value2': '2'\n" +
+			"});",
+			// expected
+			"test( /*Argument 1*/" + eo + i + "{\n" +
+			"        'Value1': '1'\n" +
+			"    },\n" +
+			"    /*Argument 2\n" +
+			"     */\n" +
+			"    {\n" +
+			"        'Value2': '2'\n" +
+			"    });");
+	}
+
+	private void permute_brace_tests(String expect_open_white, String expect_close_white) {
+		this.expect_open_white = expect_open_white;
+		this.expect_close_white = expect_close_white;
+
+		run_brace_permutation("\n", "\n");
+		run_brace_permutation("\n", " ");
+		run_brace_permutation(" ", " ");
+		run_brace_permutation(" ", "\n");
+		run_brace_permutation("","");
+
+		// brace tests that don't make sense to permutate
+		test_fragment("return {"); // return needs the brace.
+		test_fragment("return /* inline */ {");
+		bt("throw {}");
+		bt("throw {\n    foo;\n}");
+		bt( "var foo = {}");
+		test_fragment("a: do {} while (); xxx", "a: do {} while ();\nxxx");
+		bt( "{a: do {} while (); xxx}", "{\n    a: do {} while ();xxx\n}");
+		bt( "var a = new function() {};");
+		bt( "var a = new function()\n{};", "var a = new function() {};");
+		bt( "test(\n" +
+			"/*Argument 1*/ {\n" +
+			"    'Value1': '1'\n" +
+			"},\n" +
+			"/*Argument 2\n" +
+			" */ {\n" +
+			"    'Value2': '2'\n" +
+			"});",
+			// expected
+			"test(\n" +
+			"    /*Argument 1*/\n" +
+			"    {\n" +
+			"        'Value1': '1'\n" +
+			"    },\n" +
+			"    /*Argument 2\n" +
+			"     */\n" +
+			"    {\n" +
+			"        'Value2': '2'\n" +
+			"    });");
+	}
+	
+	// run all tests for the given brace style ("collapse", "expand", "end-expand", or "none").
+	// uses various whitespace combinations before and after opening and closing braces,
+	// respectively, for most of the tests' inputs.
+	private void beautify_brace_tests(BraceStyle brace_style) {
+
+		reset_options();
+		opts.brace_style = brace_style;
+
+		switch(opts.brace_style) {
+		case collapse:
+			permute_brace_tests(" ", " ");
+			break;
+		case expand:
+			permute_brace_tests("\n", "\n");
+			break;
+		case endExpand:
+			permute_brace_tests(" ", "\n");
+			break;
+		case none:
+			permute_brace_tests(null, null);
+			break;
+		}
+	}
+
+	private String unicode_char(int value) {
+		return String.copyValueOf(Character.toChars(value));
+	}
+
+	//============================================================
+	// Line wrap test inputs
+	//...---------1---------2---------3---------4---------5---------6---------7
+	//...1234567890123456789012345678901234567890123456789012345678901234567890
+	private static final String wrap_input_1=(
+		"foo.bar().baz().cucumber((f && \"sass\") || (leans && mean));\n" +
+		"Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+		"return between_return_and_expression_should_never_wrap.but_this_can\n" +
+		"throw between_throw_and_expression_should_never_wrap.but_this_can\n" +
+		"if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();\n" +
+		"object_literal = {\n" +
+		"    propertx: first_token + 12345678.99999E-6,\n" +
+		"    property: first_token_should_never_wrap + but_this_can,\n" +
+		"    propertz: first_token_should_never_wrap + !but_this_can,\n" +
+		"    proper: \"first_token_should_never_wrap\" + \"but_this_can\"\n" +
+		"}");
+
+	//...---------1---------2---------3---------4---------5---------6---------7
+	//...1234567890123456789012345678901234567890123456789012345678901234567890
+	private static final String wrap_input_2=(
+		"{\n" +
+		"    foo.bar().baz().cucumber((f && \"sass\") || (leans && mean));\n" +
+		"    Test_very_long_variable_name_this_should_never_wrap\n.but_this_can\n" +
+		"    return between_return_and_expression_should_never_wrap.but_this_can\n" +
+		"    throw between_throw_and_expression_should_never_wrap.but_this_can\n" +
+		"    if (wraps_can_occur && inside_an_if_block) that_is_\n.okay();\n" +
+		"    object_literal = {\n" +
+		"        propertx: first_token + 12345678.99999E-6,\n" +
+		"        property: first_token_should_never_wrap + but_this_can,\n" +
+		"        propertz: first_token_should_never_wrap + !but_this_can,\n" +
+		"        proper: \"first_token_should_never_wrap\" + \"but_this_can\"\n" +
+		"    }" +
+		"}");
+
+{{#groups}}{{#set_mustache_tags}}.{{/set_mustache_tags}}
+	{{^matrix}}
+	@Test
+	@DisplayName("{{#java_escape_string}}{{&name}}{{/java_escape_string}}")
+	void {{#java_identifier}}{{&name}}{{/java_identifier}}() {
+		{{#options}}
+		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
+		{{/options}}
+		{{#tests}}
+		{{#test_line}}.{{/test_line}};
+		{{/tests}}
+	}
+	{{/matrix}}
+	{{#matrix}}
+	@Test
+	@DisplayName("{{#java_escape_string}}{{&name}} - ({{#matrix_context_string}}.{{/matrix_context_string}}{{/java_escape_string}})")
+	void {{#java_identifier}}{{&name}} - ({{#matrix_context_string}}.{{/matrix_context_string}}){{/java_identifier}}() {
+		{{#options}}
+		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
+		{{/options}}
+		{{#tests}}
+		{{#test_line}}.{{/test_line}};
+		{{/tests}}
+	}
+
+	{{/matrix}}
+{{#unset_mustache_tags}}.{{/unset_mustache_tags}}{{/groups}}
+
+	@Test
+	void beautifier_unconverted_tests_null()
+	{
+		//============================================================
+		test_fragment(null, "");
+	}
+	
+	@Test
+	void beautifier_unconverted_tests_indent() {
+		opts.indent_size = 1;
+		opts.indent_char = " ";
+		bt("{ one_char() }", "{\n one_char()\n}");
+
+		bt("var a,b=1,c=2", "var a, b = 1,\n c = 2");
+
+		opts.indent_size = 4;
+		opts.indent_char = " ";
+		bt("{ one_char() }", "{\n    one_char()\n}");
+
+		opts.indent_size = 1;
+		opts.indent_char = "\t";
+		bt("{ one_char() }", "{\n\tone_char()\n}");
+		bt("x = a ? b : c; x;", "x = a ? b : c;\nx;");
+
+		//set to something else than it should change to, but with tabs on, should override
+		opts.indent_size = 5;
+		opts.indent_char = " ";
+		opts.indent_with_tabs = true;
+
+		bt("{ one_char() }", "{\n\tone_char()\n}");
+		bt("x = a ? b : c; x;", "x = a ? b : c;\nx;");
+
+		opts.indent_size = 4;
+		opts.indent_char = " ";
+		opts.indent_with_tabs = false;
+	}
+
+	@Test
+	void beautifier_unconverted_tests_brace_positioning() {
+		// tests for brace positioning
+		beautify_brace_tests(BraceStyle.expand);
+		beautify_brace_tests(BraceStyle.collapse);
+		beautify_brace_tests(BraceStyle.endExpand);
+		beautify_brace_tests(BraceStyle.none);
+
+
+		bt("\"foo\"\"bar\"\"baz\"", "\"foo\"\n\"bar\"\n\"baz\"");
+		bt("'foo''bar''baz'", "'foo'\n'bar'\n'baz'");
+
+		bt("{\n    get foo() {}\n}");
+		bt("{\n    var a = get\n    foo();\n}");
+		bt("{\n    set foo() {}\n}");
+		bt("{\n    var a = set\n    foo();\n}");
+		bt("var x = {\n    get function()\n}");
+		bt("var x = {\n    set function()\n}");
+
+		// According to my current research get/set have no special meaning outside of an object literal
+		bt("var x = set\n\na() {}", "var x = set\n\na() {}");
+		bt("var x = set\n\nfunction() {}", "var x = set\n\nfunction() {}");
+
+		bt("for () /abc/.test()");
+		bt("if (k) /aaa/m.test(v) && l();");
+		bt("switch (true) {\n    case /swf/i.test(foo):\n        bar();\n}");
+		bt("createdAt = {\n    type: Date,\n    default: Date.now\n}");
+		bt("switch (createdAt) {\n    case a:\n        Date,\n    default:\n        Date.now\n}");
+	}
+
+	@Test
+	void beautifier_unconverted_tests_preserve_newlines() {
+		opts.preserve_newlines = true;
+		bt("var a = 'foo' +\n    'bar';");
+	}
+
+	@Test
+	void beautifier_unconverted_tests_unescape_strings() {
+		opts.unescape_strings = false;
+		bt("\"\\\\s\""); // == "\\s" in the js source
+		bt("'\\\\s'"); // == '\\s' in the js source
+		bt("'\\\\\\s'"); // == '\\\s' in the js source
+		bt("'\\s'"); // == '\s' in the js source
+		bt("\"•\"");
+		bt("\"—\"");
+		bt("\"\\x41\\x42\\x43\\x01\"", "\"\\x41\\x42\\x43\\x01\"");
+		bt("\"\\u2022\"", "\"\\u2022\"");
+		bt("a = /\s+/");
+		// bt('a = /\\x41/','a = /A/');
+		bt("\"\\u2022\";a = /\s+/;\"\\x41\\x42\\x43\\x01\".match(/\\x41/);", "\"\\u2022\";\na = /\s+/;\n\"\\x41\\x42\\x43\\x01\".match(/\\x41/);");
+		test_fragment("\"\\x22\\x27\",\'\\x22\\x27\',\"\\x5c\",\'\\x5c\',\"\\xff and \\xzz\",\"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"", "\"\\x22\\x27\", \'\\x22\\x27\', \"\\x5c\", \'\\x5c\', \"\\xff and \\xzz\", \"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"");
+
+		opts.unescape_strings = true;
+		test_fragment("\"\\x20\\x40\\x4a\"", "\" @J\"");
+		test_fragment("\"\\xff\\x40\\x4a\"");
+		test_fragment("\"\\u0072\\u016B\\u0137\\u012B\\u0074\\u0069\\u0073\"", "\"\u0072\u016B\u0137\u012B\u0074\u0069\u0073\"");
+		test_fragment("\"Google Chrome est\\u00E1 actualizado.\"", "\"Google Chrome está actualizado.\"");
+		test_fragment("\"\\x22\\x27\",\'\\x22\\x27\',\"\\x5c\",\'\\x5c\',\"\\xff and \\xzz\",\"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff\"",
+		   "\"\\\"\\\'\", \'\\\"\\\'\', \"\\\\\", \'\\\\\', \"\\xff and \\xzz\", \"unicode \\u0000 \\\" \\\' \\\\ " + unicode_char(0xffff) + "\"");
+
+		// For error case, return the string unchanged
+		test_fragment("\"\\x22\\x27\",\'\\x22\\x27\',\"\\x5c\",\'\\x5c\',\"\\xff and \\xzz\",\"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"",
+			"\"\\\"\\\'\", \'\\\"\\\'\', \"\\\\\", \'\\\\\', \"\\xff and \\xzz\", \"unicode \\u0000 \\u0022 \\u0027 \\u005c \\uffff \\uzzzz\"");
+	}
+
+}
