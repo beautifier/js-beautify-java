@@ -32,6 +32,11 @@ import java.util.EnumSet;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+@Data
+@Accessors(fluent = true, chain = true)
 @NonNullByDefault
 public class Options {
 

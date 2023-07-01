@@ -30,6 +30,13 @@ package io.beautifier.javascript;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.json.JSONObject;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
+@Data
+@Accessors(fluent = true, chain = true)
+@EqualsAndHashCode(callSuper = true)
 @NonNullByDefault
 public class Options extends io.beautifier.core.Options {
 
