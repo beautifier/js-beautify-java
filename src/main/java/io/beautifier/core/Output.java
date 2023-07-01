@@ -421,7 +421,7 @@ public class Output {
 		return false;
 	}
 
-	public void add_raw_token(Token token) {
+	public void add_raw_token(Token<?, ?> token) {
 		for (var x = 0; x < token.newlines; x++) {
 			this.__add_outputline();
 		}
@@ -444,7 +444,7 @@ public class Output {
 	private void __add_space_before_token() {
 		if (this.space_before_token && !this.just_added_newline()) {
 			if (!this.non_breaking_space) {
-			this.set_wrap_point();
+				this.set_wrap_point();
 			}
 			this.current_line.push(" ");
 		}
