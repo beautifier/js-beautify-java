@@ -58,7 +58,6 @@ public class GeneratedTests {
 		opts.jslint_happy = false;
 		opts.space_before_conditional = true;
 		opts.break_chained_methods = false;
-		// opts.selector_separator = "\n"; // TODO css tests
 		opts.end_with_newline = false;
 
 		opts.indent_size = 4;
@@ -701,7 +700,7 @@ public class GeneratedTests {
 	@DisplayName("Support simple language specific option inheritance/overriding - (js = \"{ \"indent_size\": 3 }\", css = \"{ \"indent_size\": 5 }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_js_indent_size_3_css_indent_size_5_() {
 		opts.apply("{ 'indent_size': 3 }");
-		// opts.css = { 'indent_size': 5 } // disabled as testing js;
+		// opts.css = { 'indent_size': 5 } // disabled as not testing css;
 		bt(
             "if (a == b) {\n" +
             "   test();\n" +
@@ -711,7 +710,7 @@ public class GeneratedTests {
 	@Test
 	@DisplayName("Support simple language specific option inheritance/overriding - (html = \"{ \"js\": { \"indent_size\": 3 }, \"css\": { \"indent_size\": 5 } }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_html_js_indent_size_3_css_indent_size_5_() {
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } } // disabled as testing js;
+		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } } // disabled as not testing html;
 		bt(
             "if (a == b) {\n" +
             "    test();\n" +
@@ -722,9 +721,9 @@ public class GeneratedTests {
 	@DisplayName("Support simple language specific option inheritance/overriding - (indent_size = \"9\", html = \"{ \"js\": { \"indent_size\": 3 }, \"css\": { \"indent_size\": 5 }, \"indent_size\": 2}\", js = \"{ \"indent_size\": 4 }\", css = \"{ \"indent_size\": 3 }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_indent_size_9_html_js_indent_size_3_css_indent_size_5_indent_size_2_js_indent_size_4_css_indent_size_3_() {
 		opts.indent_size = 9;
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 }, 'indent_size': 2} // disabled as testing js;
+		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 }, 'indent_size': 2} // disabled as not testing html;
 		opts.apply("{ 'indent_size': 4 }");
-		// opts.css = { 'indent_size': 3 } // disabled as testing js;
+		// opts.css = { 'indent_size': 3 } // disabled as not testing css;
 		bt(
             "if (a == b) {\n" +
             "    test();\n" +

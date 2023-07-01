@@ -1,0 +1,290 @@
+/*
+{{&header_text}}
+
+  The MIT License (MIT)
+
+  Copyright (c) 2007-2018 Einar Lielmanis, Liam Newman, and contributors.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
+package io.beautifier.css;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Objects;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import io.beautifier.css.Options.BraceStyle;
+
+public class GeneratedTests {
+
+	private Options opts;
+	
+	@BeforeEach
+	void reset_options() {
+		opts = new Options();
+		opts.indent_size = 4;
+		opts.indent_char = " ";
+		opts.preserve_newlines = true;
+		opts.brace_style = BraceStyle.collapse;
+		opts.end_with_newline = false;
+
+{{#default_options}}		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
+{{/default_options}}
+	}
+
+	private String test_beautifier(String input)
+	{
+		return new Beautifier(input, opts).beautify();
+	}
+
+	private void test_fragment(String input) {
+		test_fragment(input, null);
+	}
+
+	// test the input on beautifier with the current flag settings
+	// does not check the indentation / surroundings as bt() does
+	private void test_fragment(String input, String expected)
+	{
+		if (expected == null) {
+			expected = input;
+		}
+
+		assertEquals(expected, test_beautifier(input));
+
+		// if the expected is different from input, run it again
+		// expected output should be unchanged when run twice.
+		if (!Objects.equals(input, expected)) {
+			assertEquals(expected, test_beautifier(expected));
+		}
+
+		// Everywhere we do newlines, they should be replaced with opts.eol
+		opts.eol = "\r\n";
+		expected = expected.replaceAll("\n", "\r\n");
+		opts.disabled = true;
+		assertEquals(input != null ? input : "", test_beautifier(input));
+		assertEquals("\n\n" + expected, test_beautifier("\n\n" + expected));
+		opts.disabled = false;
+		assertEquals(expected, test_beautifier(input));
+		if (input != null && input.indexOf('\n') != -1) {
+			input = input.replaceAll("\n", "\r\n");
+			assertEquals(expected, test_beautifier(input));
+			// Ensure support for auto eol detection
+			opts.eol = "auto";
+			assertEquals(expected, test_beautifier(input));
+		}
+		opts.eol = "\n";
+	}
+
+	private void t(String input) {
+		t(input, null);
+	}
+
+	// test css
+	private void t(String input, String expectation)
+	{
+		var success = true;
+		String wrapped_input, wrapped_expectation;
+
+		if (expectation == null) {
+			expectation = input;
+		}
+		
+		test_fragment(input, expectation);
+	}
+
+	private String unicode_char(int value) {
+		return String.copyValueOf(Character.toChars(value));
+	}
+
+	@Test
+	void beautifier_tests()
+	{
+		t(".tabs {}");
+	}
+
+{{#groups}}{{#set_mustache_tags}}.{{/set_mustache_tags}}
+	{{^matrix}}
+	@Test
+	@DisplayName("{{#java_escape_string}}{{&name}}{{/java_escape_string}}")
+	void {{#java_identifier}}{{&name}}{{/java_identifier}}() {
+		{{#options}}
+		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
+		{{/options}}
+		{{#tests}}
+		{{#test_line}}.{{/test_line}};
+		{{/tests}}
+	}
+
+	{{/matrix}}
+	{{#matrix}}
+	@Test
+	@DisplayName("{{#java_escape_string}}{{&name}} - ({{#matrix_context_string}}.{{/matrix_context_string}}{{/java_escape_string}})")
+	void {{#java_identifier}}{{&name}} - ({{#matrix_context_string}}.{{/matrix_context_string}}){{/java_identifier}}() {
+		{{#options}}
+		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
+		{{/options}}
+		{{#tests}}
+		{{#test_line}}.{{/test_line}};
+		{{/tests}}
+	}
+
+	{{/matrix}}
+{{#unset_mustache_tags}}.{{/unset_mustache_tags}}{{/groups}}
+
+	@Test
+	void beautifier_unconverted_tests_null()
+	{
+		test_fragment(null, "");
+	}
+
+	@Test
+	void beautifier_unconverted_tests_basic() {
+		// test basic css beautifier
+		t(".tabs {}");
+		t(".tabs{color:red;}", ".tabs {\n    color: red;\n}");
+		t(".tabs{color:rgb(255, 255, 0)}", ".tabs {\n    color: rgb(255, 255, 0)\n}");
+		t(".tabs{background:url('back.jpg')}", ".tabs {\n    background: url('back.jpg')\n}");
+		t("#bla, #foo{color:red}", "#bla,\n#foo {\n    color: red\n}");
+		t("@media print {.tab{}}", "@media print {\n    .tab {}\n}");
+		t("@media print {.tab{background-image:url(foo@2x.png)}}", "@media print {\n    .tab {\n        background-image: url(foo@2x.png)\n    }\n}");
+
+		t("a:before {\n" +
+			"    content: 'a{color:black;}\"\"\\'\\'\"\\n\\n\\na{color:black}\';\n" +
+			"}");
+
+		//lead-in whitespace determines base-indent.
+		// lead-in newlines are stripped.
+		t("\n\na, img {padding: 0.2px}", "a,\nimg {\n    padding: 0.2px\n}");
+		t("   a, img {padding: 0.2px}", "   a,\n   img {\n       padding: 0.2px\n   }");
+		t("      \na, img {padding: 0.2px}", "      a,\n      img {\n          padding: 0.2px\n      }");
+		t("\n\n     a, img {padding: 0.2px}", "a,\nimg {\n    padding: 0.2px\n}");
+
+		// separate selectors
+		t("#bla, #foo{color:red}", "#bla,\n#foo {\n    color: red\n}");
+		t("a, img {padding: 0.2px}", "a,\nimg {\n    padding: 0.2px\n}");
+
+		// block nesting
+		t("#foo {\n    background-image: url(foo@2x.png);\n    @font-face {\n        font-family: 'Bitstream Vera Serif Bold';\n        src: url('http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf');\n    }\n}");
+		t("@media screen {\n    #foo:hover {\n        background-image: url(foo@2x.png);\n    }\n    @font-face {\n        font-family: 'Bitstream Vera Serif Bold';\n        src: url('http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf');\n    }\n}");
+/*
+@font-face {
+	font-family: 'Bitstream Vera Serif Bold';
+	src: url('http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf');
+}
+@media screen {
+	#foo:hover {
+		background-image: url(foo.png);
+	}
+	@media screen and (min-device-pixel-ratio: 2) {
+		@font-face {
+			font-family: 'Helvetica Neue'
+		}
+		#foo:hover {
+			background-image: url(foo@2x.png);
+		}
+	}
+}
+*/
+		t("@font-face {\n    font-family: 'Bitstream Vera Serif Bold';\n    src: url('http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf');\n}\n@media screen {\n    #foo:hover {\n        background-image: url(foo.png);\n    }\n    @media screen and (min-device-pixel-ratio: 2) {\n        @font-face {\n            font-family: 'Helvetica Neue'\n        }\n        #foo:hover {\n            background-image: url(foo@2x.png);\n        }\n    }\n}");
+
+		// less-css cases
+		t(".well{@well-bg:@bg-color;@well-fg:@fg-color;}", ".well {\n    @well-bg: @bg-color;\n    @well-fg: @fg-color;\n}");
+		t(".well {&.active {\nbox-shadow: 0 1px 1px @border-color, 1px 0 1px @border-color;}}",
+			".well {\n" +
+			"    &.active {\n" +
+			"        box-shadow: 0 1px 1px @border-color, 1px 0 1px @border-color;\n" +
+			"    }\n" +
+			"}");
+		t("a {\n" +
+			"    color: blue;\n" +
+			"    &:hover {\n" +
+			"        color: green;\n" +
+			"    }\n" +
+			"    & & &&&.active {\n" +
+			"        color: green;\n" +
+			"    }\n" +
+			"}");
+
+		// Not sure if this is sensible
+		// but I believe it is correct to not remove the space in "&: hover".
+		t("a {\n" +
+			"    &: hover {\n" +
+			"        color: green;\n" +
+			"    }\n" +
+			"}");
+
+		// import
+		t("@import \"test\";");
+
+		// don't break nested pseudo-classes
+		t("a:first-child{color:red;div:first-child{color:black;}}",
+			"a:first-child {\n    color: red;\n    div:first-child {\n        color: black;\n    }\n}");
+
+		// handle SASS/LESS parent reference
+		t("div{&:first-letter {text-transform: uppercase;}}",
+			"div {\n    &:first-letter {\n        text-transform: uppercase;\n    }\n}");
+
+		//nested modifiers (&:hover etc)
+		t(".tabs{&:hover{width:10px;}}", ".tabs {\n    &:hover {\n        width: 10px;\n    }\n}");
+		t(".tabs{&.big{width:10px;}}", ".tabs {\n    &.big {\n        width: 10px;\n    }\n}");
+		t(".tabs{&>big{width:10px;}}", ".tabs {\n    &>big {\n        width: 10px;\n    }\n}");
+		t(".tabs{&+.big{width:10px;}}", ".tabs {\n    &+.big {\n        width: 10px;\n    }\n}");
+
+		//nested rules
+		t(".tabs{.child{width:10px;}}", ".tabs {\n    .child {\n        width: 10px;\n    }\n}");
+
+		//variables
+		t("@myvar:10px;.tabs{width:10px;}", "@myvar: 10px;\n.tabs {\n    width: 10px;\n}");
+		t("@myvar:10px; .tabs{width:10px;}", "@myvar: 10px;\n.tabs {\n    width: 10px;\n}");
+
+		//mixins
+		t("div{.px2rem(width,12);}", "div {\n    .px2rem(width, 12);\n}");
+		// mixin next to 'background: url("...")' should not add a line break after the comma
+		t("div {\n    background: url(\"//test.com/dummy.png\");\n    .px2rem(width, 12);\n}");
+
+		// test options
+		opts.indent_size = 2;
+		opts.indent_char = " ";
+		opts.selector_separator_newline = false;
+
+		// pseudo-classes and pseudo-elements
+		t("#foo:hover {\n  background-image: url(foo@2x.png)\n}");
+		t("#foo *:hover {\n  color: purple\n}");
+		t("::selection {\n  color: #ff0000;\n}");
+
+		// TODO: don't break nested pseduo-classes
+		t("@media screen {.tab,.bat:hover {color:red}}", "@media screen {\n  .tab, .bat:hover {\n    color: red\n  }\n}");
+
+		// particular edge case with braces and semicolons inside tags that allows custom text
+		t("a:not(\"foobar\\\";{}omg\"){\ncontent: 'example\\';{} text';\ncontent: \"example\\\";{} text\";}",
+			"a:not(\"foobar\\\";{}omg\") {\n  content: 'example\\';{} text';\n  content: \"example\\\";{} text\";\n}");
+
+		// may not eat the space before "["
+		t("html.js [data-custom=\"123\"] {\n  opacity: 1.00;\n}");
+		t("html.js *[data-custom=\"123\"] {\n  opacity: 1.00;\n}");
+	}
+
+}

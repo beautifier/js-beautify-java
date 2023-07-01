@@ -55,10 +55,9 @@ public class GeneratedTests {
 		opts.jslint_happy = false;
 		opts.space_before_conditional = true;
 		opts.break_chained_methods = false;
-		// opts.selector_separator = "\n"; // TODO css tests
 		opts.end_with_newline = false;
 
-{{#default_options}}		opts.{{name}} = {{#java_value}}{{&value}}{{/java_value}};
+{{#default_options}}		{{#java_opt}}opts.{{name}} = {{&value}}{{/java_opt}};
 {{/default_options}}
 	}
 

@@ -41,11 +41,11 @@ function generate_tests() {
   generate_test_files('javascript', 'bt', 'js/test/generated/beautify-javascript-tests.js', 'python/jsbeautifier/tests/generated/tests.py', 'src/test/java/io/beautifier/javascript/GeneratedTests.java');
 
   // css
-  generate_test_files('css', 't', 'js/test/generated/beautify-css-tests.js', 'python/cssbeautifier/tests/generated/tests.py');
+  generate_test_files('css', 't', 'js/test/generated/beautify-css-tests.js', 'python/cssbeautifier/tests/generated/tests.py', 'src/test/java/io/beautifier/css/GeneratedTests.java');
 
   // html
   // no python html beautifier, so no tests
-  generate_test_files('html', 'bth', 'js/test/generated/beautify-html-tests.js');
+  generate_test_files('html', 'bth', 'js/test/generated/beautify-html-tests.js', '', 'src/test/java/io/beautifier/html/GeneratedTests.java');
 }
 
 function generate_test_files(data_folder, test_method, node_output, python_output, java_output) {
@@ -59,7 +59,7 @@ function generate_test_files(data_folder, test_method, node_output, python_outpu
   template_file_path = path.resolve(input_path, 'node.mustache');
   if (fs.existsSync(template_file_path)) {
     template = fs.readFileSync(template_file_path, { encoding: 'utf-8' });
-    set_formatters(test_data, test_method, '// ');
+    set_formatters(test_data, test_method, '// ', data_folder);
     set_generated_header(test_data, data_file_path, template_file_path);
     fs.mkdirSync(path.resolve(__dirname, '..', node_output, '..'), { recursive: true });
     fs.writeFileSync(path.resolve(__dirname, '..', node_output),
@@ -70,7 +70,7 @@ function generate_test_files(data_folder, test_method, node_output, python_outpu
     template_file_path = path.resolve(input_path, 'python.mustache');
     if (fs.existsSync(template_file_path)) {
       template = fs.readFileSync(template_file_path, { encoding: 'utf-8' });
-      set_formatters(test_data, test_method, '# ');
+      set_formatters(test_data, test_method, '# ', data_folder);
       set_generated_header(test_data, data_file_path, template_file_path);
       fs.mkdirSync(path.resolve(__dirname, '..', python_output, '..'), { recursive: true });
       fs.writeFileSync(path.resolve(__dirname, '..', python_output),
@@ -79,12 +79,14 @@ function generate_test_files(data_folder, test_method, node_output, python_outpu
   }
   if (java_output) {
     template_file_path = path.resolve(input_path, 'java.mustache');
-    template = fs.readFileSync(template_file_path, { encoding: 'utf-8' });
-    set_formatters(test_data, test_method, '// ', '"');
-    set_generated_header(test_data, data_file_path, template_file_path);
-    fs.mkdirSync(path.resolve(__dirname, '..', java_output, '..'), { recursive: true });
-    fs.writeFileSync(path.resolve(__dirname, '..', java_output),
-      mustache.render(template, test_data), { encoding: 'utf-8' });
+    if (fs.existsSync(template_file_path)) {
+      template = fs.readFileSync(template_file_path, { encoding: 'utf-8' });
+      set_formatters(test_data, test_method, '// ', data_folder, '"');
+      set_generated_header(test_data, data_file_path, template_file_path);
+      fs.mkdirSync(path.resolve(__dirname, '..', java_output, '..'), { recursive: true });
+      fs.writeFileSync(path.resolve(__dirname, '..', java_output),
+        mustache.render(template, test_data), { encoding: 'utf-8' });
+    }
   }
 }
 
@@ -117,7 +119,7 @@ function getTestString(val, quote) {
   return result;
 }
 
-function set_formatters(data, test_method, comment_mark, quote) {
+function set_formatters(data, test_method, comment_mark, mode, quote) {
 
   // utility mustache functions
   data.matrix_context_string = function() {
@@ -249,16 +251,6 @@ function set_formatters(data, test_method, comment_mark, quote) {
       }
     };
   };
-
-  data.java_value = function() {
-    return function(text, render) {
-      const saveMustacheTags = mustache.tags;
-      mustache.tags = ['{{', '}}'];
-      var result = render(text);
-      mustache.tags = saveMustacheTags;
-      return convertSingleToDoubleQuotes(result);
-    };
-  };
   
   data.java_escape_string = function() {
     return function(text, render) {
@@ -311,11 +303,29 @@ function set_formatters(data, test_method, comment_mark, quote) {
       } else if (name === 'templating') {
         return `opts.${name} = EnumSet.of(${value.replace(/[\[\]]/g, '').split(/, ?/).map(t => `TemplateLanguage.valueOf(${convertSingleToDoubleQuotes(t)})`)})`
       } else if (name === 'js') {
-        return `opts.apply("${value}")`
-      } else if (name === 'css' || name === 'html') {
-        return `// ${result} // disabled as testing js`
+        if (mode === 'javascript') {
+          return `opts.apply("${value}")`
+        } else {
+          return `// ${result} // disabled as not testing javascript`
+        }
+      } else if (name === 'css') {
+        if (mode === 'css') {
+          return `opts.apply("${value}")`
+        } else {
+          return `// ${result} // disabled as not testing css`
+        }
+      } else if (name === 'html') {
+        if (mode === 'html') {
+          return `opts.apply("${value}")`
+        } else {
+          return `// ${result} // disabled as not testing html`
+        }
       } else {
-        return `opts.${name} = ${convertSingleToDoubleQuotes(value)}`;
+        if (value.match(/^".*"$/)) {
+          return `opts.${name} = ${value}`;
+        } else {
+          return `opts.${name} = ${convertSingleToDoubleQuotes(value)}`;
+        }
       }
     }
   }
@@ -324,7 +334,7 @@ function set_formatters(data, test_method, comment_mark, quote) {
 function convertSingleToDoubleQuotes(str) {
   var result = str;
   result = result.replace(/"/g, "TEMP_REPLACED_DOUBLE_QUOTE");
-  result = result.replace(/(?<!\\)'/g, '"');
+  result = result.replace(/(?<!(^|[^\\])\\)'/g, '"');
   result = result.replace(/TEMP_REPLACED_DOUBLE_QUOTE/g, "\\\"");
   return result;
 }

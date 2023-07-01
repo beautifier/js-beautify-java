@@ -71,6 +71,9 @@ public class Output {
 
 		public String item(int index) {
 			if (index < 0) {
+				if (this.__items.size() + index < 0) {
+					return null;
+				}
 				return this.__items.get(this.__items.size() + index);
 			} else {
 				return this.__items.get(index);
