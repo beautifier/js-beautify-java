@@ -39,20 +39,37 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.Options.TemplateLanguage;
 
 @NonNullByDefault
-public class TemplatablePattern extends InputScannerPattern {
+public class TemplatablePattern extends InputScannerPattern<TemplatablePattern> {
 
-	private static class Patterns {
-		private InputScannerPattern handlebars_comment;
-		private InputScannerPattern handlebars_unescaped;
-		private InputScannerPattern handlebars;
-		private InputScannerPattern php;
-		private InputScannerPattern erb;
-		private InputScannerPattern django;
-		private InputScannerPattern django_value;
-		private InputScannerPattern django_comment;
-		private InputScannerPattern smarty;
-		private InputScannerPattern smarty_comment;
-		private InputScannerPattern smarty_literal;
+	private class Patterns {
+		private InputScannerPattern<?> handlebars_comment;
+		private InputScannerPattern<?> handlebars_unescaped;
+		private InputScannerPattern<?> handlebars;
+		private InputScannerPattern<?> php;
+		private InputScannerPattern<?> erb;
+		private InputScannerPattern<?> django;
+		private InputScannerPattern<?> django_value;
+		private InputScannerPattern<?> django_comment;
+		private InputScannerPattern<?> smarty;
+		private InputScannerPattern<?> smarty_comment;
+		private InputScannerPattern<?> smarty_literal;
+
+		Patterns() {
+			var pattern = new InputScannerPattern<>(_input);
+
+			handlebars_comment = pattern.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
+			handlebars_unescaped = pattern.starting_with(Pattern.compile("\\{\\{\\{")).until_after(Pattern.compile("}}}"));
+			handlebars = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
+			php = pattern.starting_with(Pattern.compile("<\\?(?:[= ]|php)")).until_after(Pattern.compile("\\?>"));
+			erb = pattern.starting_with(Pattern.compile("<%[^%]")).until_after(Pattern.compile("[^%]%>"));
+			// django coflicts with handlebars a bit.
+			django = pattern.starting_with(Pattern.compile("\\{%")).until_after(Pattern.compile("%}"));
+			django_value = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
+			django_comment = pattern.starting_with(Pattern.compile("\\{#")).until_after(Pattern.compile("#}"));
+			smarty = pattern.starting_with(Pattern.compile("\\{(?=[^}{\\s\n])")).until_after(Pattern.compile("[^\\s\n]}"));
+			smarty_comment = pattern.starting_with(Pattern.compile("\\{\\*")).until_after(Pattern.compile("\\*}"));
+			smarty_literal = pattern.starting_with(Pattern.compile("\\{literal}")).until_after(Pattern.compile("\\{/literal}"));
+		}
 	}
 
 	private @Nullable Pattern __template_pattern;
@@ -78,22 +95,10 @@ public class TemplatablePattern extends InputScannerPattern {
 			this._disabled.addAll(parent._disabled);
 		}
 
-		var pattern = new InputScannerPattern(input_scanner);
 		this.__patterns = new Patterns();
-		this.__patterns.handlebars_comment = pattern.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
-		this.__patterns.handlebars_unescaped = pattern.starting_with(Pattern.compile("\\{\\{\\{")).until_after(Pattern.compile("\\)}}}"));
-		this.__patterns.handlebars = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("\\)}}"));
-		this.__patterns.php = pattern.starting_with(Pattern.compile("<\\?(?:[= ]|php)")).until_after(Pattern.compile("\\?>"));
-		this.__patterns.erb = pattern.starting_with(Pattern.compile("<%[^%]")).until_after(Pattern.compile("[^%]%>"));
-		// django coflicts with handlebars a bit.
-		this.__patterns.django = pattern.starting_with(Pattern.compile("\\{%")).until_after(Pattern.compile("%}"));
-		this.__patterns.django_value = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
-		this.__patterns.django_comment = pattern.starting_with(Pattern.compile("\\{#")).until_after(Pattern.compile("#}"));
-		this.__patterns.smarty = pattern.starting_with(Pattern.compile("\\{(?=[^}{\\s\n])")).until_after(Pattern.compile("[^\\s\n]}"));
-		this.__patterns.smarty_comment = pattern.starting_with(Pattern.compile("\\{\\*")).until_after(Pattern.compile("\\*}"));
-		this.__patterns.smarty_literal = pattern.starting_with(Pattern.compile("\\{literal}")).until_after(Pattern.compile("\\{/literal}"));
 	}
 
+	@Override
 	protected TemplatablePattern _create() {
 		return new TemplatablePattern(this._input, this);
 	}
@@ -127,6 +132,7 @@ public class TemplatablePattern extends InputScannerPattern {
 		return result;
 	}
 
+	@Override
 	public String read() {
 		StringBuilder result = new StringBuilder();
 		if (this._match_pattern != null) {

@@ -34,7 +34,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 @NonNullByDefault
-public class InputScannerPattern {
+public class InputScannerPattern<SELF extends InputScannerPattern<SELF>> {
 
 	protected InputScanner _input;
 	protected @Nullable Pattern _starting_pattern;
@@ -46,7 +46,7 @@ public class InputScannerPattern {
 		this(input_scanner, null);
 	}
 	
-	public InputScannerPattern(InputScanner input_scanner, @Nullable InputScannerPattern parent) {
+	public InputScannerPattern(InputScanner input_scanner, @Nullable SELF parent) {
 		this._input = input_scanner;
 		this._starting_pattern = null;
 		this._match_pattern = null;
@@ -78,7 +78,7 @@ public class InputScannerPattern {
 		}
 	}
 
-	public InputScannerPattern until_after(Pattern pattern) {
+	public SELF until_after(Pattern pattern) {
 		var result = this._create();
 		result._until_after = true;
 		result._until_pattern = pattern;
@@ -86,7 +86,7 @@ public class InputScannerPattern {
 		return result;
 	}
 
-	public InputScannerPattern until(Pattern pattern) {
+	public SELF until(Pattern pattern) {
 		var result = this._create();
 		result._until_after = false;
 		result._until_pattern = pattern;
@@ -94,22 +94,23 @@ public class InputScannerPattern {
 		return result;
 	}
 
-	public InputScannerPattern starting_with(Pattern pattern) {
+	public SELF starting_with(Pattern pattern) {
 		var result = this._create();
 		result._starting_pattern = pattern;
 		result._update();
 		return result;
 	}
 
-	public InputScannerPattern matching(Pattern pattern) {
+	public SELF matching(Pattern pattern) {
 		var result = this._create();
 		result._match_pattern = pattern;
 		result._update();
 		return result;
 	}
 
-	protected InputScannerPattern _create() {
-		return new InputScannerPattern(this._input, this);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected SELF _create() {
+		return (SELF) new InputScannerPattern(this._input, this);
 	}
 
 	protected void _update() {

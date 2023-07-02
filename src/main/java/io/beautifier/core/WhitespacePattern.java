@@ -36,7 +36,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 @NonNullByDefault
-public class WhitespacePattern extends InputScannerPattern {
+public class WhitespacePattern extends InputScannerPattern<WhitespacePattern> {
 
 	int newline_count;
 	String whitespace_before_token;
@@ -93,6 +93,7 @@ public class WhitespacePattern extends InputScannerPattern {
 		return result;
 	}
 
+	@Override
 	protected WhitespacePattern _create() {
 		return new WhitespacePattern(this._input, this);
 	}

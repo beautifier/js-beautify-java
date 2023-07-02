@@ -134,23 +134,23 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 
 	private class Patterns {
 		private TemplatablePattern template;
-		private InputScannerPattern identifier;
-		private InputScannerPattern number;
-		private InputScannerPattern punct;
-		private InputScannerPattern comment;
-		private InputScannerPattern block_comment;
-		private InputScannerPattern html_comment_start;
-		private InputScannerPattern html_comment_end;
-		private InputScannerPattern include;
-		private InputScannerPattern shebang;
-		private InputScannerPattern xml;
-		private InputScannerPattern single_quote;
-		private InputScannerPattern double_quote;
-		private InputScannerPattern template_text;
-		private InputScannerPattern template_expression;
+		private InputScannerPattern<?> identifier;
+		private InputScannerPattern<?> number;
+		private InputScannerPattern<?> punct;
+		private InputScannerPattern<?> comment;
+		private InputScannerPattern<?> block_comment;
+		private InputScannerPattern<?> html_comment_start;
+		private InputScannerPattern<?> html_comment_end;
+		private InputScannerPattern<?> include;
+		private InputScannerPattern<?> shebang;
+		private InputScannerPattern<?> xml;
+		private InputScannerPattern<?> single_quote;
+		private InputScannerPattern<?> double_quote;
+		private InputScannerPattern<?> template_text;
+		private InputScannerPattern<?> template_expression;
 
 		private Patterns() {
-			var pattern_reader = new InputScannerPattern(_input);
+			var pattern_reader = new InputScannerPattern<>(_input);
 			var templatable = new TemplatablePattern(_input)
 				.read_options(_options);
 				
@@ -614,7 +614,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 	//
 	private String _read_string_recursive(String delimiter, boolean allow_unescaped_newlines, @Nullable String start_sub) {
 		String current_char;
-		InputScannerPattern pattern;
+		InputScannerPattern<?> pattern;
 		if ("'".equals(delimiter)) {
 			pattern = this.__patterns.single_quote;
 		} else if ("\"".equals(delimiter)) {
