@@ -59,9 +59,6 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 
 
 	enum TOKEN {
-		START,
-		RAW,
-		EOF,
 		START_EXPR,
 		END_EXPR,
 		START_BLOCK,
@@ -77,6 +74,9 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 		COMMENT,
 		DOT,
 		UNKNOWN,
+		START,
+		RAW,
+		EOF,
 		;
 	}
 
