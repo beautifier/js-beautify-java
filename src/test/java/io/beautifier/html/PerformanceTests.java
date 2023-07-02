@@ -14,7 +14,6 @@ public class PerformanceTests {
 	void github() throws IOException {
 		String input = readString(getClass().getResourceAsStream("html-with-base64image.html"));
 		String result = new HTMLBeautifier(input).beautify();
-		System.out.println(result);
 		assertNotEquals(input, result);
 	}
 
