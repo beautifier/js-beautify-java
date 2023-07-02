@@ -37,13 +37,14 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
+import io.beautifier.core.Beautifier;
 import io.beautifier.core.Directives;
 import io.beautifier.core.InputScanner;
 import io.beautifier.core.Output;
 import io.beautifier.css.Options.BraceStyle;
 
 @NonNullByDefault
-public class Beautifier {
+public class CSSBeautifier implements Beautifier {
 
 	private static final Directives directives_core = new Directives(Pattern.compile("/\\*"), Pattern.compile("\\*/"));
 
@@ -85,11 +86,11 @@ public class Beautifier {
 	private int _indentLevel;
 	private int _nestedLevel;
 
-	public Beautifier(@Nullable String source_text) {
+	public CSSBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
 
-	public Beautifier(@Nullable String source_text, @Nullable Options options) {
+	public CSSBeautifier(@Nullable String source_text, @Nullable Options options) {
 		this._source_text = source_text != null ? source_text : "";
 		// Allow the setting of language/file-type specific options
 		// with inheritance of overall settings

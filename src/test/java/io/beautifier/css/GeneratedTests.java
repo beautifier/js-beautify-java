@@ -67,7 +67,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new Beautifier(input, opts).beautify();
+		return new CSSBeautifier(input, opts).beautify();
 	}
 
 	private void test_fragment(String input) {
@@ -115,9 +115,6 @@ public class GeneratedTests {
 	// test css
 	private void t(String input, String expectation)
 	{
-		var success = true;
-		String wrapped_input, wrapped_expectation;
-
 		if (expectation == null) {
 			expectation = input;
 		}

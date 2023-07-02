@@ -68,7 +68,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new Beautifier(input, opts).beautify();
+		return new JavaScriptBeautifier(input, opts).beautify();
 	}
 
 	private void test_fragment(String input) {

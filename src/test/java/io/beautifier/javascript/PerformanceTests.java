@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
@@ -17,7 +15,7 @@ public class PerformanceTests {
 		String input = readString(getClass().getResourceAsStream("underscore.js"));
 		Options options = new Options();
 		options.wrap_line_length = 80;
-		String result = new Beautifier(input, options).beautify();
+		String result = new JavaScriptBeautifier(input, options).beautify();
 		assertNotEquals(input, result);
 	}
 	
@@ -26,7 +24,7 @@ public class PerformanceTests {
 		String input = readString(getClass().getResourceAsStream("underscore-min.js"));
 		Options options = new Options();
 		options.wrap_line_length = 80;
-		String result = new Beautifier(input, options).beautify();
+		String result = new JavaScriptBeautifier(input, options).beautify();
 		assertNotEquals(input, result);
 	}
 	
@@ -35,7 +33,7 @@ public class PerformanceTests {
 		String input = readString(getClass().getResourceAsStream("github-min.js"));
 		Options options = new Options();
 		options.wrap_line_length = 80;
-		String result = new Beautifier(input, options).beautify();
+		String result = new JavaScriptBeautifier(input, options).beautify();
 		assertNotEquals(input, result);
 	}
 

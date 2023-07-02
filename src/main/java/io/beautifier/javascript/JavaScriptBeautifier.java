@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
+import io.beautifier.core.Beautifier;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
 import io.beautifier.javascript.Options.BraceStyle;
@@ -45,7 +46,7 @@ import io.beautifier.javascript.Options.OperatorPosition;
 import io.beautifier.javascript.Tokenizer.TOKEN;
 
 @NonNullByDefault
-public class Beautifier {
+public class JavaScriptBeautifier implements Beautifier {
 
 	private static String ltrim(String s) {
 		return s.replaceFirst("^\\s+", "");
@@ -145,11 +146,11 @@ public class Beautifier {
 	private @Nullable List<Frame> _flag_store;
 	private Options _options;
 
-	public Beautifier(@Nullable String source_text) {
+	public JavaScriptBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
 	
-	public Beautifier(@Nullable String source_text, @Nullable Options options) {
+	public JavaScriptBeautifier(@Nullable String source_text, @Nullable Options options) {
 		this._source_text = source_text != null ? source_text : "";
 
 		this._output = null;
