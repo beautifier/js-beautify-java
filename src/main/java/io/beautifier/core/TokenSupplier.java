@@ -27,12 +27,13 @@
 
 package io.beautifier.core;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 @FunctionalInterface
 @NonNullByDefault
-public interface TokenSupplier<E extends Enum<?>, T extends Token<E, T>> {
+public interface TokenSupplier<@NonNull E extends Enum<?>, T extends Token<E, T>> {
 	
 	T createToken(E type, String text, int newlines, @Nullable String whitespace_before);
 
