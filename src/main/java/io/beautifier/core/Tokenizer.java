@@ -42,7 +42,7 @@ public class Tokenizer<E extends Enum<?>, T extends Token<E, T>> {
 	private final TokenSupplier<E, T> tokenSupplier;
 
 	protected final InputScanner _input;
-	private @Nullable Options _options;
+	private @Nullable Options<?> _options;
 	private @Nullable TokenStream<E, T> __tokens;
 	protected final Patterns _patterns;
 
@@ -56,7 +56,7 @@ public class Tokenizer<E extends Enum<?>, T extends Token<E, T>> {
 
 	}
 
-	public Tokenizer(String input_string, TokenSupplier<E, T> tokenSupplier, E TOKEN_START, E TOKEN_RAW, E TOKEN_EOF, @Nullable Options options) {
+	public Tokenizer(String input_string, TokenSupplier<E, T> tokenSupplier, E TOKEN_START, E TOKEN_RAW, E TOKEN_EOF, @Nullable Options<?> options) {
 		this._input = new InputScanner(input_string);
 		this._options = options;
 		this.tokenSupplier = tokenSupplier;

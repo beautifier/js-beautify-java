@@ -109,7 +109,7 @@ public class TemplatablePattern extends InputScannerPattern {
 		return result;
 	}
 
-	public TemplatablePattern read_options(Options options) {
+	public TemplatablePattern read_options(Options<?> options) {
 		var result = this._create();
 		for (var language : TemplateLanguage.values()) {
 			if (!options.templating.contains(language)) {

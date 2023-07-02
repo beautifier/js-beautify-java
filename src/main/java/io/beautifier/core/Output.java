@@ -222,11 +222,11 @@ public class Output {
 			return result.toString();
 		}
 
-		public IndentStringCache(Options options) {
+		public IndentStringCache(Options<?> options) {
 			this(options, "");
 		}
 
-		public IndentStringCache(Options options, String baseIndentString) {
+		public IndentStringCache(Options<?> options, String baseIndentString) {
 			this.__cache = new ArrayList<>();
 			this.__cache.add("");
 			this.__indent_size = options.indent_size;
@@ -313,7 +313,7 @@ public class Output {
 	public boolean non_breaking_space;
 	public boolean previous_token_wrapped;
 
-	public Output(Options options, String baseIndentString) {
+	public Output(Options<?> options, String baseIndentString) {
 		this.__indent_cache = new IndentStringCache(options, baseIndentString);
 		this.raw = false;
 		this._end_with_newline = options.end_with_newline;
