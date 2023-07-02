@@ -92,7 +92,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	}
 
 	@Override
-	public void prepare() {
+	protected void prepare() {
 		super.prepare();
 
 		// force this._options.space_after_anon_function to true if this._options.jslint_happy

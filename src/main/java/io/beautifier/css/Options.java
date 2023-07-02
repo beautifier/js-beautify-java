@@ -76,7 +76,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	}
 
 	@Override
-	public void prepare() {
+	protected void prepare() {
 		super.prepare();
 
 		space_around_combinator = space_around_combinator || space_around_selector_separator;

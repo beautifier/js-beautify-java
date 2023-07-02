@@ -128,7 +128,7 @@ public class Options<SELF extends Options<SELF>> {
 		return self();
 	}
 
-	public void prepare() {
+	protected void prepare() {
 		if (!this.preserve_newlines) {
 			this.max_preserve_newlines = 0;
 		}
