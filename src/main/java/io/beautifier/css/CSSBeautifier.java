@@ -86,6 +86,10 @@ public class CSSBeautifier implements Beautifier {
 	private int _indentLevel;
 	private int _nestedLevel;
 
+	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
+		return new CSSBeautifier(source_text, options.css().build()).beautify();
+	}
+
 	public CSSBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
@@ -94,11 +98,9 @@ public class CSSBeautifier implements Beautifier {
 		this._source_text = source_text != null ? source_text : "";
 		// Allow the setting of language/file-type specific options
 		// with inheritance of overall settings
-		this._options = options != null ? options : new Options();
+		this._options = options != null ? options : Options.builder().build();
 		this._ch = null;
 		this._input = null;
-
-		this._options.prepare();
 	}
 
 	private String eatString(String endChars) {

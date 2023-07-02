@@ -37,6 +37,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,11 +48,11 @@ import io.beautifier.javascript.Options.OperatorPosition;
 
 public class GeneratedTests {
 
-	private Options opts;
+	private Options.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = new Options();
+		opts = Options.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;
@@ -68,7 +69,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new JavaScriptBeautifier(input, opts).beautify();
+		return new JavaScriptBeautifier(input, opts.build()).beautify();
 	}
 
 	private void test_fragment(String input) {
@@ -139,7 +140,7 @@ public class GeneratedTests {
 		//     indent;
 		// }
 
-		var current_indent_size = opts.indent_size;
+		var current_indent_size = opts.build().indent_size;
 		if (current_indent_size == 4 && input != null && !input.isEmpty()) {
 			wrapped_input = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(input).replaceAll("    $1") + "\n    foo = bar;\n}";
 			wrapped_expectation = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(expectation).replaceAll("    $1") + "\n    foo = bar;\n}";
@@ -699,8 +700,8 @@ public class GeneratedTests {
 	@Test
 	@DisplayName("Support simple language specific option inheritance/overriding - (js = \"{ \"indent_size\": 3 }\", css = \"{ \"indent_size\": 5 }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_js_indent_size_3_css_indent_size_5_() {
-		opts.apply("{ 'indent_size': 3 }");
-		// opts.css = { 'indent_size': 5 } // disabled as not testing css;
+		opts.js().apply(new JSONObject("{ 'indent_size': 3 }"));
+		opts.css().apply(new JSONObject("{ 'indent_size': 5 }"));
 		bt(
             "if (a == b) {\n" +
             "   test();\n" +
@@ -710,7 +711,7 @@ public class GeneratedTests {
 	@Test
 	@DisplayName("Support simple language specific option inheritance/overriding - (html = \"{ \"js\": { \"indent_size\": 3 }, \"css\": { \"indent_size\": 5 } }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_html_js_indent_size_3_css_indent_size_5_() {
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } } // disabled as not testing html;
+		opts.html().apply(new JSONObject("{ 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } }"));
 		bt(
             "if (a == b) {\n" +
             "    test();\n" +
@@ -721,9 +722,9 @@ public class GeneratedTests {
 	@DisplayName("Support simple language specific option inheritance/overriding - (indent_size = \"9\", html = \"{ \"js\": { \"indent_size\": 3 }, \"css\": { \"indent_size\": 5 }, \"indent_size\": 2}\", js = \"{ \"indent_size\": 4 }\", css = \"{ \"indent_size\": 3 }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_indent_size_9_html_js_indent_size_3_css_indent_size_5_indent_size_2_js_indent_size_4_css_indent_size_3_() {
 		opts.indent_size = 9;
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 }, 'indent_size': 2} // disabled as not testing html;
-		opts.apply("{ 'indent_size': 4 }");
-		// opts.css = { 'indent_size': 3 } // disabled as not testing css;
+		opts.html().apply(new JSONObject("{ 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 }, 'indent_size': 2}"));
+		opts.js().apply(new JSONObject("{ 'indent_size': 4 }"));
+		opts.css().apply(new JSONObject("{ 'indent_size': 3 }"));
 		bt(
             "if (a == b) {\n" +
             "    test();\n" +
@@ -733,7 +734,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Brace style permutations - (brace_style = \"\"collapse,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_() {
+	void Brace_style_permutations_brace_style_collapse_preserve_inline_() {
 		opts.brace_style = BraceStyle.collapse; opts.brace_preserve_inline = true;
 		bt(
             "var a ={a: 2};\n" +
@@ -757,7 +758,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Brace style permutations - (brace_style = \"\"collapse,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_1() {
+	void Brace_style_permutations_brace_style_collapse_preserve_inline_1() {
 		opts.brace_style = BraceStyle.collapse; opts.brace_preserve_inline = true;
 		bt(
             "var a =\n" +
@@ -831,7 +832,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Brace style permutations - ()")
-	void _name_matrix_context_string_matrix_context_string_2() {
+	void Brace_style_permutations_() {
 		bt(
             "var a ={a: 2};\n" +
             "var a ={a: 2};",
@@ -874,7 +875,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Brace style permutations - (brace_style = \"\"collapse\"\")")
-	void _name_matrix_context_string_matrix_context_string_3() {
+	void Brace_style_permutations_brace_style_collapse_() {
 		opts.brace_style = BraceStyle.collapse;
 		bt(
             "var a ={a: 2};\n" +
@@ -918,7 +919,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Brace style permutations - (brace_style = \"\"collapse\"\")")
-	void _name_matrix_context_string_matrix_context_string_4() {
+	void Brace_style_permutations_brace_style_collapse_1() {
 		opts.brace_style = BraceStyle.collapse;
 		bt(
             "var a =\n" +
@@ -1589,7 +1590,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("general preserve_newlines tests - (preserve_newlines = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_5() {
+	void general_preserve_newlines_tests_preserve_newlines_false_() {
 		opts.preserve_newlines = false;
 		bt(
             "if (foo) // comment\n" +
@@ -1927,7 +1928,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("general preserve_newlines tests - (preserve_newlines = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_6() {
+	void general_preserve_newlines_tests_preserve_newlines_true_() {
 		opts.preserve_newlines = true;
 		bt(
             "if (foo) // comment\n" +
@@ -2267,7 +2268,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("break chained methods - (break_chained_methods = \"false\", preserve_newlines = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_7() {
+	void break_chained_methods_break_chained_methods_false_preserve_newlines_false_() {
 		opts.break_chained_methods = false;
 		opts.preserve_newlines = false;
 		bt(
@@ -2346,7 +2347,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("break chained methods - (break_chained_methods = \"false\", preserve_newlines = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_8() {
+	void break_chained_methods_break_chained_methods_false_preserve_newlines_true_() {
 		opts.break_chained_methods = false;
 		opts.preserve_newlines = true;
 		bt(
@@ -2447,7 +2448,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("break chained methods - (break_chained_methods = \"true\", preserve_newlines = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_9() {
+	void break_chained_methods_break_chained_methods_true_preserve_newlines_false_() {
 		opts.break_chained_methods = true;
 		opts.preserve_newlines = false;
 		bt(
@@ -2550,7 +2551,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("break chained methods - (break_chained_methods = \"true\", preserve_newlines = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_10() {
+	void break_chained_methods_break_chained_methods_true_preserve_newlines_true_() {
 		opts.break_chained_methods = true;
 		opts.preserve_newlines = true;
 		bt(
@@ -3168,7 +3169,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("general preserve_newlines tests preserve limit")
-	void _name_() {
+	void general_preserve_newlines_tests_preserve_limit() {
 		opts.preserve_newlines = true;
 		opts.max_preserve_newlines = 8;
 		bt(
@@ -4548,7 +4549,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Multiple braces")
-	void _name_1() {
+	void Multiple_braces() {
 		bt(
             "{{}/z/}",
             //  -- output --
@@ -5034,7 +5035,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_11() {
+	void minimal_template_handling_() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = <?php$view[\"name\"]; ?>;", "var a = <?php$view[\"name\"]; ?>;");
 		bt(
@@ -5061,7 +5062,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_12() {
+	void minimal_template_handling_1() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = <?=$view[\"name\"]; ?>;", "var a = <?=$view[\"name\"]; ?>;");
 		bt(
@@ -5088,7 +5089,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_13() {
+	void minimal_template_handling_2() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = <%$view[\"name\"]; %>;", "var a = <%$view[\"name\"]; %>;");
 		bt(
@@ -5115,7 +5116,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_14() {
+	void minimal_template_handling_3() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = <%=$view[\"name\"]; %>;", "var a = <%=$view[\"name\"]; %>;");
 		bt(
@@ -5142,7 +5143,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_15() {
+	void minimal_template_handling_4() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{$view[\"name\"]; }};", "var a = {{$view[\"name\"]; }};");
 		bt(
@@ -5169,7 +5170,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_16() {
+	void minimal_template_handling_5() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {#$view[\"name\"]; #};", "var a = {#$view[\"name\"]; #};");
 		bt(
@@ -5196,7 +5197,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_17() {
+	void minimal_template_handling_6() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {%$view[\"name\"]; %};", "var a = {%$view[\"name\"]; %};");
 		bt(
@@ -5223,7 +5224,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_18() {
+	void minimal_template_handling_7() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{$view[\"name\"]; }};", "var a = {{$view[\"name\"]; }};");
 		bt(
@@ -5250,7 +5251,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_19() {
+	void minimal_template_handling_8() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{{$view[\"name\"]; }}};", "var a = {{{$view[\"name\"]; }}};");
 		bt(
@@ -5277,7 +5278,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_20() {
+	void minimal_template_handling_9() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{^$view[\"name\"]; }};", "var a = {{^$view[\"name\"]; }};");
 		bt(
@@ -5304,7 +5305,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_21() {
+	void minimal_template_handling_10() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{#$view[\"name\"]; }};", "var a = {{#$view[\"name\"]; }};");
 		bt(
@@ -5331,7 +5332,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_22() {
+	void minimal_template_handling_11() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{!$view[\"name\"]; }};", "var a = {{!$view[\"name\"]; }};");
 		bt(
@@ -5358,7 +5359,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("minimal template handling - ()")
-	void _name_matrix_context_string_matrix_context_string_23() {
+	void minimal_template_handling_12() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("django"),TemplateLanguage.valueOf("erb"),TemplateLanguage.valueOf("handlebars"),TemplateLanguage.valueOf("php"));
 		bt("var  a = {{!--$view[\"name\"]; --}};", "var a = {{!--$view[\"name\"]; --}};");
 		bt(
@@ -5386,7 +5387,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_24() {
+	void Templating_disabled_ensure_formatting_() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"<?php\";if(0){}\"?>\";",
@@ -5403,7 +5404,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_25() {
+	void Templating_disabled_ensure_formatting_1() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"<?=\";if(0){}\"?>\";",
@@ -5420,7 +5421,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_26() {
+	void Templating_disabled_ensure_formatting_2() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"<%\";if(0){}\"%>\";",
@@ -5437,7 +5438,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_27() {
+	void Templating_disabled_ensure_formatting_3() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"<%=\";if(0){}\"%>\";",
@@ -5454,7 +5455,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_28() {
+	void Templating_disabled_ensure_formatting_4() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{\";if(0){}\"}}\";",
@@ -5471,7 +5472,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_29() {
+	void Templating_disabled_ensure_formatting_5() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{#\";if(0){}\"#}\";",
@@ -5488,7 +5489,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_30() {
+	void Templating_disabled_ensure_formatting_6() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{%\";if(0){}\"%}\";",
@@ -5505,7 +5506,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_31() {
+	void Templating_disabled_ensure_formatting_7() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{\";if(0){}\"}}\";",
@@ -5522,7 +5523,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_32() {
+	void Templating_disabled_ensure_formatting_8() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{{\";if(0){}\"}}}\";",
@@ -5539,7 +5540,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_33() {
+	void Templating_disabled_ensure_formatting_9() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{^\";if(0){}\"}}\";",
@@ -5556,7 +5557,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_34() {
+	void Templating_disabled_ensure_formatting_10() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{#\";if(0){}\"}}\";",
@@ -5573,7 +5574,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_35() {
+	void Templating_disabled_ensure_formatting_11() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{!\";if(0){}\"}}\";",
@@ -5590,7 +5591,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Templating disabled - ensure formatting - ()")
-	void _name_matrix_context_string_matrix_context_string_36() {
+	void Templating_disabled_ensure_formatting_12() {
 		opts.templating = EnumSet.of(TemplateLanguage.valueOf("auto"));
 		bt(
             "\"{{!--\";if(0){}\"--}}\";",
@@ -7888,7 +7889,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("brace_style ,preserve-inline tests - (brace_style = \"\"collapse,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_37() {
+	void brace_style_preserve_inline_tests_brace_style_collapse_preserve_inline_() {
 		opts.brace_style = BraceStyle.collapse; opts.brace_preserve_inline = true;
 		bt("import { asdf } from \"asdf\";");
 		bt("import { get } from \"asdf\";");
@@ -7934,7 +7935,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("brace_style ,preserve-inline tests - (brace_style = \"\"expand,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_38() {
+	void brace_style_preserve_inline_tests_brace_style_expand_preserve_inline_() {
 		opts.brace_style = BraceStyle.expand; opts.brace_preserve_inline = true;
 		bt("import { asdf } from \"asdf\";");
 		bt("import { get } from \"asdf\";");
@@ -7998,7 +7999,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("brace_style ,preserve-inline tests - (brace_style = \"\"end-expand,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_39() {
+	void brace_style_preserve_inline_tests_brace_style_end_expand_preserve_inline_() {
 		opts.brace_style = BraceStyle.endExpand; opts.brace_preserve_inline = true;
 		bt("import { asdf } from \"asdf\";");
 		bt("import { get } from \"asdf\";");
@@ -8048,7 +8049,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("brace_style ,preserve-inline tests - (brace_style = \"\"none,preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_40() {
+	void brace_style_preserve_inline_tests_brace_style_none_preserve_inline_() {
 		opts.brace_style = BraceStyle.none; opts.brace_preserve_inline = true;
 		bt("import { asdf } from \"asdf\";");
 		bt("import { get } from \"asdf\";");
@@ -8094,7 +8095,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("brace_style ,preserve-inline tests - (brace_style = \"\"collapse-preserve-inline\"\")")
-	void _name_matrix_context_string_matrix_context_string_41() {
+	void brace_style_preserve_inline_tests_brace_style_collapse_preserve_inline_1() {
 		opts.brace_preserve_inline = true; opts.brace_style = BraceStyle.collapse;
 		bt("import { asdf } from \"asdf\";");
 		bt("import { get } from \"asdf\";");

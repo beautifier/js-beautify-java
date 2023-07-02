@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,307 +25,378 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.html;
 
-var BaseTokenizer = require('../core/tokenizer').Tokenizer;
-var BASETOKEN = require('../core/tokenizer').TOKEN;
-var Directives = require('../core/directives').Directives;
-var TemplatablePattern = require('../core/templatablepattern').TemplatablePattern;
-var Pattern = require('../core/pattern').Pattern;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-var TOKEN = {
-  TAG_OPEN: 'TK_TAG_OPEN',
-  TAG_CLOSE: 'TK_TAG_CLOSE',
-  ATTRIBUTE: 'TK_ATTRIBUTE',
-  EQUALS: 'TK_EQUALS',
-  VALUE: 'TK_VALUE',
-  COMMENT: 'TK_COMMENT',
-  TEXT: 'TK_TEXT',
-  UNKNOWN: 'TK_UNKNOWN',
-  START: BASETOKEN.START,
-  RAW: BASETOKEN.RAW,
-  EOF: BASETOKEN.EOF
-};
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
-var directives_core = new Directives(/<\!--/, /-->/);
+import io.beautifier.core.Directives;
+import io.beautifier.core.InputScannerPattern;
+import io.beautifier.core.Options.TemplateLanguage;
+import io.beautifier.core.TemplatablePattern;
 
-var Tokenizer = function(input_string, options) {
-  BaseTokenizer.call(this, input_string, options);
-  this._current_tag_name = '';
+@NonNullByDefault
+public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 
-  // Words end at whitespace or when a tag starts
-  // if we are indenting handlebars, they are considered tags
-  var templatable_reader = new TemplatablePattern(this._input).read_options(this._options);
-  var pattern_reader = new Pattern(this._input);
+	enum TOKEN {
+		TAG_OPEN,
+		TAG_CLOSE,
+		ATTRIBUTE,
+		EQUALS,
+		VALUE,
+		COMMENT,
+		TEXT,
+		UNKNOWN,
+		START,
+		RAW,
+		EOF,
+		CONTENT, /* This doesn't exist in the JavaScript version, it uses a unique string value of "TK_CONTENT" */
+	}
 
-  this.__patterns = {
-    word: templatable_reader.until(/[\n\r\t <]/),
-    single_quote: templatable_reader.until_after(/'/),
-    double_quote: templatable_reader.until_after(/"/),
-    attribute: templatable_reader.until(/[\n\r\t =>]|\/>/),
-    element_name: templatable_reader.until(/[\n\r\t >\/]/),
-
-    handlebars_comment: pattern_reader.starting_with(/{{!--/).until_after(/--}}/),
-    handlebars: pattern_reader.starting_with(/{{/).until_after(/}}/),
-    handlebars_open: pattern_reader.until(/[\n\r\t }]/),
-    handlebars_raw_close: pattern_reader.until(/}}/),
-    comment: pattern_reader.starting_with(/<!--/).until_after(/-->/),
-    cdata: pattern_reader.starting_with(/<!\[CDATA\[/).until_after(/]]>/),
-    // https://en.wikipedia.org/wiki/Conditional_comment
-    conditional_comment: pattern_reader.starting_with(/<!\[/).until_after(/]>/),
-    processing: pattern_reader.starting_with(/<\?/).until_after(/\?>/)
-  };
-
-  if (this._options.indent_handlebars) {
-    this.__patterns.word = this.__patterns.word.exclude('handlebars');
-  }
-
-  this._unformatted_content_delimiter = null;
-
-  if (this._options.unformatted_content_delimiter) {
-    var literal_regexp = this._input.get_literal_regexp(this._options.unformatted_content_delimiter);
-    this.__patterns.unformatted_content_delimiter =
-      pattern_reader.matching(literal_regexp)
-      .until_after(literal_regexp);
-  }
-};
-Tokenizer.prototype = new BaseTokenizer();
-
-Tokenizer.prototype._is_comment = function(current_token) { // jshint unused:false
-  return false; //current_token.type === TOKEN.COMMENT || current_token.type === TOKEN.UNKNOWN;
-};
-
-Tokenizer.prototype._is_opening = function(current_token) {
-  return current_token.type === TOKEN.TAG_OPEN;
-};
-
-Tokenizer.prototype._is_closing = function(current_token, open_token) {
-  return current_token.type === TOKEN.TAG_CLOSE &&
-    (open_token && (
-      ((current_token.text === '>' || current_token.text === '/>') && open_token.text[0] === '<') ||
-      (current_token.text === '}}' && open_token.text[0] === '{' && open_token.text[1] === '{')));
-};
-
-Tokenizer.prototype._reset = function() {
-  this._current_tag_name = '';
-};
-
-Tokenizer.prototype._get_next_token = function(previous_token, open_token) { // jshint unused:false
-  var token = null;
-  this._readWhitespace();
-  var c = this._input.peek();
-
-  if (c === null) {
-    return this._create_token(TOKEN.EOF, '');
-  }
-
-  token = token || this._read_open_handlebars(c, open_token);
-  token = token || this._read_attribute(c, previous_token, open_token);
-  token = token || this._read_close(c, open_token);
-  token = token || this._read_raw_content(c, previous_token, open_token);
-  token = token || this._read_content_word(c);
-  token = token || this._read_comment_or_cdata(c);
-  token = token || this._read_processing(c);
-  token = token || this._read_open(c, open_token);
-  token = token || this._create_token(TOKEN.UNKNOWN, this._input.next());
-
-  return token;
-};
-
-Tokenizer.prototype._read_comment_or_cdata = function(c) { // jshint unused:false
-  var token = null;
-  var resulting_string = null;
-  var directives = null;
-
-  if (c === '<') {
-    var peek1 = this._input.peek(1);
-    // We treat all comments as literals, even more than preformatted tags
-    // we only look for the appropriate closing marker
-    if (peek1 === '!') {
-      resulting_string = this.__patterns.comment.read();
-
-      // only process directive on html comments
-      if (resulting_string) {
-        directives = directives_core.get_directives(resulting_string);
-        if (directives && directives.ignore === 'start') {
-          resulting_string += directives_core.readIgnored(this._input);
-        }
-      } else {
-        resulting_string = this.__patterns.cdata.read();
-      }
-    }
-
-    if (resulting_string) {
-      token = this._create_token(TOKEN.COMMENT, resulting_string);
-      token.directives = directives;
-    }
-  }
-
-  return token;
-};
-
-Tokenizer.prototype._read_processing = function(c) { // jshint unused:false
-  var token = null;
-  var resulting_string = null;
-  var directives = null;
-
-  if (c === '<') {
-    var peek1 = this._input.peek(1);
-    if (peek1 === '!' || peek1 === '?') {
-      resulting_string = this.__patterns.conditional_comment.read();
-      resulting_string = resulting_string || this.__patterns.processing.read();
-    }
-
-    if (resulting_string) {
-      token = this._create_token(TOKEN.COMMENT, resulting_string);
-      token.directives = directives;
-    }
-  }
-
-  return token;
-};
-
-Tokenizer.prototype._read_open = function(c, open_token) {
-  var resulting_string = null;
-  var token = null;
-  if (!open_token) {
-    if (c === '<') {
-
-      resulting_string = this._input.next();
-      if (this._input.peek() === '/') {
-        resulting_string += this._input.next();
-      }
-      resulting_string += this.__patterns.element_name.read();
-      token = this._create_token(TOKEN.TAG_OPEN, resulting_string);
-    }
-  }
-  return token;
-};
-
-Tokenizer.prototype._read_open_handlebars = function(c, open_token) {
-  var resulting_string = null;
-  var token = null;
-  if (!open_token) {
-    if (this._options.indent_handlebars && c === '{' && this._input.peek(1) === '{') {
-      if (this._input.peek(2) === '!') {
-        resulting_string = this.__patterns.handlebars_comment.read();
-        resulting_string = resulting_string || this.__patterns.handlebars.read();
-        token = this._create_token(TOKEN.COMMENT, resulting_string);
-      } else {
-        resulting_string = this.__patterns.handlebars_open.read();
-        token = this._create_token(TOKEN.TAG_OPEN, resulting_string);
-      }
-    }
-  }
-  return token;
-};
+	private static final Directives directives_core = new Directives(Pattern.compile("<!--"), Pattern.compile("-->"));
 
 
-Tokenizer.prototype._read_close = function(c, open_token) {
-  var resulting_string = null;
-  var token = null;
-  if (open_token) {
-    if (open_token.text[0] === '<' && (c === '>' || (c === '/' && this._input.peek(1) === '>'))) {
-      resulting_string = this._input.next();
-      if (c === '/') { //  for close tag "/>"
-        resulting_string += this._input.next();
-      }
-      token = this._create_token(TOKEN.TAG_CLOSE, resulting_string);
-    } else if (open_token.text[0] === '{' && c === '}' && this._input.peek(1) === '}') {
-      this._input.next();
-      this._input.next();
-      token = this._create_token(TOKEN.TAG_CLOSE, '}}');
-    }
-  }
+	private final Patterns __patterns;
+	private final Options _options;
 
-  return token;
-};
+	private class Patterns {
+		private TemplatablePattern word;
+		private TemplatablePattern single_quote;
+		private TemplatablePattern double_quote;
+		private TemplatablePattern attribute;
+		private TemplatablePattern element_name;
+		private InputScannerPattern<?> handlebars_comment;
+		private InputScannerPattern<?> handlebars;
+		private InputScannerPattern<?> handlebars_open;
+		private InputScannerPattern<?> handlebars_raw_close;
+		private InputScannerPattern<?> comment;
+		private InputScannerPattern<?> cdata;
+		private InputScannerPattern<?> conditional_comment;
+		private InputScannerPattern<?> processing;
+		private InputScannerPattern<?> unformatted_content_delimiter;
 
-Tokenizer.prototype._read_attribute = function(c, previous_token, open_token) {
-  var token = null;
-  var resulting_string = '';
-  if (open_token && open_token.text[0] === '<') {
+		private Patterns() {
+			// Words end at whitespace or when a tag starts
+			// if we are indenting handlebars, they are considered tags
+			var templatable_reader = new TemplatablePattern(_input).read_options(_options);
+			var pattern_reader = new InputScannerPattern<>(_input);
 
-    if (c === '=') {
-      token = this._create_token(TOKEN.EQUALS, this._input.next());
-    } else if (c === '"' || c === "'") {
-      var content = this._input.next();
-      if (c === '"') {
-        content += this.__patterns.double_quote.read();
-      } else {
-        content += this.__patterns.single_quote.read();
-      }
-      token = this._create_token(TOKEN.VALUE, content);
-    } else {
-      resulting_string = this.__patterns.attribute.read();
+			word = templatable_reader.until(Pattern.compile("[\n\r\t <]"));
+			single_quote = templatable_reader.until_after(Pattern.compile("'"));
+			double_quote = templatable_reader.until_after(Pattern.compile("\""));
+			attribute = templatable_reader.until(Pattern.compile("[\n\r\t =>]|/>"));
+			element_name = templatable_reader.until(Pattern.compile("[\n\r\t >/]"));
 
-      if (resulting_string) {
-        if (previous_token.type === TOKEN.EQUALS) {
-          token = this._create_token(TOKEN.VALUE, resulting_string);
-        } else {
-          token = this._create_token(TOKEN.ATTRIBUTE, resulting_string);
-        }
-      }
-    }
-  }
-  return token;
-};
+			handlebars_comment = pattern_reader.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
+			handlebars = pattern_reader.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
+			handlebars_open = pattern_reader.until(Pattern.compile("[\n\r\t }]"));
+			handlebars_raw_close = pattern_reader.until(Pattern.compile("}}"));
+			comment = pattern_reader.starting_with(Pattern.compile("<!--")).until_after(Pattern.compile("-->"));
+			cdata = pattern_reader.starting_with(Pattern.compile("<!\\[CDATA\\[")).until_after(Pattern.compile("]]>"));
+			// https://en.wikipedia.org/wiki/Conditional_comment
+			conditional_comment = pattern_reader.starting_with(Pattern.compile("<!\\[")).until_after(Pattern.compile("]>"));
+			processing = pattern_reader.starting_with(Pattern.compile("<\\?")).until_after(Pattern.compile("\\?>"));
 
-Tokenizer.prototype._is_content_unformatted = function(tag_name) {
-  // void_elements have no content and so cannot have unformatted content
-  // script and style tags should always be read as unformatted content
-  // finally content_unformatted and unformatted element contents are unformatted
-  return this._options.void_elements.indexOf(tag_name) === -1 &&
-    (this._options.content_unformatted.indexOf(tag_name) !== -1 ||
-      this._options.unformatted.indexOf(tag_name) !== -1);
-};
+			if (_options.unformatted_content_delimiter != null && !_options.unformatted_content_delimiter.isEmpty()) {
+				var literal_regexp = Pattern.compile(Pattern.quote(_options.unformatted_content_delimiter));
+				unformatted_content_delimiter =
+					pattern_reader.matching(literal_regexp)
+					.until_after(literal_regexp);
+			}
+		}
+	}
+
+	private String _current_tag_name;
+	private String _unformatted_content_delimiter;
+
+	public Tokenizer(String input_string, Options options) {
+		super(input_string, Token::createToken, TOKEN.START, TOKEN.RAW, TOKEN.EOF, options);
+
+		this._options = options;
+
+		this._current_tag_name = "";
 
 
-Tokenizer.prototype._read_raw_content = function(c, previous_token, open_token) { // jshint unused:false
-  var resulting_string = '';
-  if (open_token && open_token.text[0] === '{') {
-    resulting_string = this.__patterns.handlebars_raw_close.read();
-  } else if (previous_token.type === TOKEN.TAG_CLOSE &&
-    previous_token.opened.text[0] === '<' && previous_token.text[0] !== '/') {
-    // ^^ empty tag has no content 
-    var tag_name = previous_token.opened.text.substr(1).toLowerCase();
-    if (tag_name === 'script' || tag_name === 'style') {
-      // Script and style tags are allowed to have comments wrapping their content
-      // or just have regular content.
-      var token = this._read_comment_or_cdata(c);
-      if (token) {
-        token.type = TOKEN.TEXT;
-        return token;
-      }
-      resulting_string = this._input.readUntil(new RegExp('</' + tag_name + '[\\n\\r\\t ]*?>', 'ig'));
-    } else if (this._is_content_unformatted(tag_name)) {
+		this.__patterns = new Patterns();
 
-      resulting_string = this._input.readUntil(new RegExp('</' + tag_name + '[\\n\\r\\t ]*?>', 'ig'));
-    }
-  }
+		if (this._options.indent_handlebars) {
+			this.__patterns.word = this.__patterns.word.exclude(TemplateLanguage.handlebars);
+		}
 
-  if (resulting_string) {
-    return this._create_token(TOKEN.TEXT, resulting_string);
-  }
+		this._unformatted_content_delimiter = null;
+	}
 
-  return null;
-};
+	@Override
+	protected boolean _is_comment(Token current_token) {
+		return false; //current_token.type === TOKEN.COMMENT || current_token.type === TOKEN.UNKNOWN;
+	}
 
-Tokenizer.prototype._read_content_word = function(c) {
-  var resulting_string = '';
-  if (this._options.unformatted_content_delimiter) {
-    if (c === this._options.unformatted_content_delimiter[0]) {
-      resulting_string = this.__patterns.unformatted_content_delimiter.read();
-    }
-  }
+	@Override
+	protected boolean _is_opening(Token current_token) {
+		return current_token.type == TOKEN.TAG_OPEN;
+	}
 
-  if (!resulting_string) {
-    resulting_string = this.__patterns.word.read();
-  }
-  if (resulting_string) {
-    return this._create_token(TOKEN.TEXT, resulting_string);
-  }
-};
+	@Override
+	protected boolean _is_closing(Token current_token, @Nullable Token open_token) {
+		return current_token.type == TOKEN.TAG_CLOSE &&
+			(open_token != null && (
+				((">".equals(current_token.text) || "/>".equals(current_token.text)) && open_token.text.startsWith("<")) ||
+				("}}".equals(current_token.text) && open_token.text.startsWith("{") && open_token.text.substring(1, 2).equals("{"))));
+	}
 
-module.exports.Tokenizer = Tokenizer;
-module.exports.TOKEN = TOKEN;
+	@Override
+	protected void _reset() {
+		this._current_tag_name = "";
+	}
+
+	@Override
+	protected Token _get_next_token(Token previous_token, @Nullable Token open_token) {
+		Token token = null;
+		this._readWhitespace();
+		var c = this._input.peek();
+
+		if (c == null) {
+			return this._create_token(TOKEN.EOF, "");
+		}
+
+		if (token == null) {
+			token = this._read_open_handlebars(c, open_token);
+		}
+		if (token == null) {
+			token = this._read_attribute(c, previous_token, open_token);
+		}
+		if (token == null) {
+			token = this._read_close(c, open_token);
+		}
+		if (token == null) {
+			token = this._read_raw_content(c, previous_token, open_token);
+		}
+		if (token == null) {
+			token = this._read_content_word(c);
+		}
+		if (token == null) {
+			token = this._read_comment_or_cdata(c);
+		}
+		if (token == null) {
+			token = this._read_processing(c);
+		}
+		if (token == null) {
+			token = this._read_open(c, open_token);
+		}
+		if (token == null) {
+			token = this._create_token(TOKEN.UNKNOWN, this._input.next());
+		}
+
+		return token;
+	}
+
+	@Nullable
+	private Token _read_comment_or_cdata(String c) {
+		Token token = null;
+		String resulting_string = null;
+		Map<String, String> directives = null;
+
+		if ("<".equals(c)) {
+			var peek1 = this._input.peek(1);
+			// We treat all comments as literals, even more than preformatted tags
+			// we only look for the appropriate closing marker
+			if ("!".equals(peek1)) {
+				resulting_string = this.__patterns.comment.read();
+
+				// only process directive on html comments
+				if (resulting_string != null && !resulting_string.isEmpty()) {
+					directives = directives_core.get_directives(resulting_string);
+					if (directives != null && "start".equals(directives.get("ignore"))) {
+						resulting_string += directives_core.readIgnored(this._input);
+					}
+				} else {
+					resulting_string = this.__patterns.cdata.read();
+				}
+			}
+
+			if (resulting_string != null && !resulting_string.isEmpty()) {
+				token = this._create_token(TOKEN.COMMENT, resulting_string);
+				token.directives = directives;
+			}
+		}
+
+		return token;
+	}
+
+	@Nullable
+	private Token _read_processing(String c) {
+		Token token = null;
+		String resulting_string = null;
+		Map<String, String> directives = null;
+
+		if ("<".equals(c)) {
+			var peek1 = this._input.peek(1);
+			if ("!".equals(peek1) || "?".equals(peek1)) {
+				resulting_string = this.__patterns.conditional_comment.read();
+				if (resulting_string == null || resulting_string.isEmpty()) {
+					resulting_string = this.__patterns.processing.read();
+				}
+			}
+
+			if (resulting_string != null && !resulting_string.isEmpty()) {
+				token = this._create_token(TOKEN.COMMENT, resulting_string);
+				token.directives = directives;
+			}
+		}
+
+		return token;
+	}
+
+	@Nullable
+	private Token _read_open(String c, @Nullable Token open_token) {
+		String resulting_string = null;
+		Token token = null;
+		if (open_token == null) {
+			if ("<".equals(c)) {
+
+				resulting_string = this._input.next();
+				if ("/".equals(this._input.peek())) {
+					resulting_string += this._input.next();
+				}
+				resulting_string += this.__patterns.element_name.read();
+				token = this._create_token(TOKEN.TAG_OPEN, resulting_string);
+			}
+		}
+		return token;
+	}
+
+	@Nullable
+	private Token _read_open_handlebars(String c, @Nullable Token open_token) {
+		String resulting_string = null;
+		Token token = null;
+		if (open_token == null) {
+			if (this._options.indent_handlebars && "{".equals(c) && "{".equals(this._input.peek(1))) {
+				if ("!".equals(this._input.peek(2))) {
+					resulting_string = this.__patterns.handlebars_comment.read();
+					if (resulting_string == null || resulting_string.isEmpty()) {
+						resulting_string = this.__patterns.handlebars.read();
+					}
+					token = this._create_token(TOKEN.COMMENT, resulting_string);
+				} else {
+					resulting_string = this.__patterns.handlebars_open.read();
+					token = this._create_token(TOKEN.TAG_OPEN, resulting_string);
+				}
+			}
+		}
+		return token;
+	}
+
+	@Nullable
+	private Token _read_close(String c, @Nullable Token open_token) {
+		String resulting_string = null;
+		Token token = null;
+		if (open_token != null) {
+			if (open_token.text.startsWith("<") && (">".equals(c) || ("/".equals(c) && ">".equals(this._input.peek(1))))) {
+				resulting_string = this._input.next();
+				if ("/".equals(c)) { //  for close tag "/>"
+					resulting_string += this._input.next();
+				}
+				token = this._create_token(TOKEN.TAG_CLOSE, resulting_string);
+			} else if (open_token.text.startsWith("{") && "}".equals(c) && "}".equals(this._input.peek(1))) {
+				this._input.next();
+				this._input.next();
+				token = this._create_token(TOKEN.TAG_CLOSE, "}}");
+			}
+		}
+
+		return token;
+	}
+
+	@Nullable
+	private Token _read_attribute(String c, @Nullable Token previous_token, @Nullable Token open_token) {
+		Token token = null;
+		var resulting_string = "";
+		if (open_token != null && open_token.text.startsWith("<")) {
+
+			if ("=".equals(c)) {
+				token = this._create_token(TOKEN.EQUALS, this._input.next());
+			} else if ("\"".equals(c) || "'".equals(c)) {
+				var content = this._input.next();
+				if ("\"".equals(c)) {
+					content += this.__patterns.double_quote.read();
+				} else {
+					content += this.__patterns.single_quote.read();
+				}
+				token = this._create_token(TOKEN.VALUE, content);
+			} else {
+				resulting_string = this.__patterns.attribute.read();
+
+				if (resulting_string != null && !resulting_string.isEmpty()) {
+					if (previous_token.type == TOKEN.EQUALS) {
+						token = this._create_token(TOKEN.VALUE, resulting_string);
+					} else {
+						token = this._create_token(TOKEN.ATTRIBUTE, resulting_string);
+					}
+				}
+			}
+		}
+		return token;
+	}
+
+	private boolean _is_content_unformatted(String tag_name) {
+		// void_elements have no content and so cannot have unformatted content
+		// script and style tags should always be read as unformatted content
+		// finally content_unformatted and unformatted element contents are unformatted
+		return !this._options.void_elements.contains(tag_name) &&
+			(this._options.content_unformatted.contains(tag_name) ||
+				this._options.unformatted.contains(tag_name));
+	}
+
+	@Nullable
+	private Token _read_raw_content(String c, Token previous_token, @Nullable Token open_token) {
+		var resulting_string = "";
+		if (open_token != null && open_token.text.startsWith("{")) {
+			resulting_string = this.__patterns.handlebars_raw_close.read();
+		} else if (previous_token.type == TOKEN.TAG_CLOSE &&
+			previous_token.opened.text.startsWith("<") && !previous_token.text.startsWith("/")) {
+			// ^^ empty tag has no content 
+			var tag_name = previous_token.opened.text.substring(1, previous_token.opened.text.length()).toLowerCase();
+			if ("script".equals(tag_name) || "style".equals(tag_name)) {
+				// Script and style tags are allowed to have comments wrapping their content
+				// or just have regular content.
+				var token = this._read_comment_or_cdata(c);
+				if (token != null) {
+					token.type = TOKEN.TEXT;
+					return token;
+				}
+				resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\n\r\t ]*?>", Pattern.CASE_INSENSITIVE));
+			} else if (this._is_content_unformatted(tag_name)) {
+
+				resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\n\r\t ]*?>", Pattern.CASE_INSENSITIVE));
+			}
+		}
+
+		if (resulting_string != null && !resulting_string.isEmpty()) {
+			return this._create_token(TOKEN.TEXT, resulting_string);
+		}
+
+		return null;
+	}
+
+	@Nullable
+	private Token _read_content_word(String c) {
+		var resulting_string = "";
+		if (this._options.unformatted_content_delimiter != null && !this._options.unformatted_content_delimiter.isEmpty()) {
+			if (this._options.unformatted_content_delimiter.substring(0, 1).equals(c)) {
+				resulting_string = this.__patterns.unformatted_content_delimiter.read();
+			}
+		}
+
+		if (resulting_string == null || resulting_string.isEmpty()) {
+			resulting_string = this.__patterns.word.read();
+		}
+		if (resulting_string != null && !resulting_string.isEmpty()) {
+			return this._create_token(TOKEN.TEXT, resulting_string);
+		}
+		return null;
+	}
+
+}

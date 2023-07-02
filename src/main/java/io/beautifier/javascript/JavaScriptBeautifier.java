@@ -41,6 +41,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.Beautifier;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
+import io.beautifier.css.CSSBeautifier;
 import io.beautifier.javascript.Options.BraceStyle;
 import io.beautifier.javascript.Options.OperatorPosition;
 import io.beautifier.javascript.Tokenizer.TOKEN;
@@ -146,6 +147,10 @@ public class JavaScriptBeautifier implements Beautifier {
 	private @Nullable List<Frame> _flag_store;
 	private Options _options;
 
+	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
+		return new JavaScriptBeautifier(source_text, options.js().build()).beautify();
+	}
+
 	public JavaScriptBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
@@ -160,8 +165,7 @@ public class JavaScriptBeautifier implements Beautifier {
 		this._previous_flags = null;
 
 		this._flag_store = null;
-		this._options = options != null ? options : new Options();
-		this._options.prepare();
+		this._options = options != null ? options : Options.builder().build();
 	}
 
 	static class Frame {

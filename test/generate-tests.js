@@ -233,7 +233,11 @@ function set_formatters(data, test_method, comment_mark, mode, quote) {
 
   data.java_identifier = function() {
     return function(text, render) {
+      const saveMustacheTags = mustache.tags;
+      mustache.tags = ['{{', '}}'];
       var identifier = render(text).replace(/[^a-zA-Z0-9_]+/g, '_').replace(/^[0-9]/, '_$0');
+      mustache.tags = saveMustacheTags;
+      
       if (!identifier) {
         identifier = "untitled";
       }
@@ -300,38 +304,64 @@ function set_formatters(data, test_method, comment_mark, mode, quote) {
         } else {
           throw new Error(`Unsupported operator_position: ${value}`);
         }
+      } else if (name === 'wrap_attributes') {
+        if (value === "'auto'") {
+          return 'opts.wrap_attributes = WrapAttributes.auto';
+        } else if (value === "'force'") {
+          return 'opts.wrap_attributes = WrapAttributes.force';
+        } else if (value === "'force-aligned'") {
+          return 'opts.wrap_attributes = WrapAttributes.forceAligned';
+        } else if (value === "'force-expand-multiline'") {
+          return 'opts.wrap_attributes = WrapAttributes.forceExpandMultiline';
+        } else if (value === "'aligned-multiple'") {
+          return 'opts.wrap_attributes = WrapAttributes.alignedMultiple';
+        } else if (value === "'preserve'") {
+          return 'opts.wrap_attributes = WrapAttributes.preserve';
+        } else if (value === "'preserve-aligned'") {
+          return 'opts.wrap_attributes = WrapAttributes.preserveAligned';
+        } else {
+          throw new Error(`Unsupported wrap_attributes: ${value}`);
+        }
+      } else if (name == 'indent_scripts') {
+        if (value === "'normal'") {
+          return 'opts.indent_scripts = IndentScripts.normal';
+        } else if (value === "'keep'") {
+          return 'opts.indent_scripts = IndentScripts.keep';
+        } else if (value === "'separate'") {
+          return 'opts.indent_scripts = IndentScripts.separate';
+        } else {
+          throw new Error(`Unsupported indent_scripts: ${value}`);
+        }
       } else if (name === 'templating') {
         return `opts.${name} = EnumSet.of(${value.replace(/[\[\]]/g, '').split(/, ?/).map(t => `TemplateLanguage.valueOf(${convertSingleToDoubleQuotes(t)})`)})`
+      } else if (name === 'extra_liners' || name === 'unformatted' || name == 'content_unformatted') {
+        if (value === 'null') {
+          return `opts.${name} = null`;
+        } else if (value.match(/^'[^']*'$/)) {
+          return `opts.${name} = new java.util.HashSet<>(java.util.Arrays.asList(${'"' + value.replace(/^'/, '').replace(/'$/, '').split(/[^a-zA-Z0-9_\/\-]+/).join('", "') + '"'}))`
+        } else {
+          return `opts.${name} = new java.util.HashSet<>(java.util.Arrays.asList(${convertSingleToDoubleQuotes(value.replace(/[\[\]]/g, ''))}))`
+        }
+      } else if (name === 'max_preserve_newlines') {
+        return `opts.${name} = ${!value || value === 'null' ? 32786 : value}`
       } else if (name === 'js') {
-        if (mode === 'javascript') {
-          return `opts.apply("${value}")`
-        } else {
-          return `// ${result} // disabled as not testing javascript`
-        }
+        return `opts.js().apply(new JSONObject("${value}"))`
       } else if (name === 'css') {
-        if (mode === 'css') {
-          return `opts.apply("${value}")`
-        } else {
-          return `// ${result} // disabled as not testing css`
-        }
+        return `opts.css().apply(new JSONObject("${value}"))`
       } else if (name === 'html') {
-        if (mode === 'html') {
-          return `opts.apply("${value}")`
-        } else {
-          return `// ${result} // disabled as not testing html`
-        }
+        return `opts.html().apply(new JSONObject("${value}"))`
       } else {
-        if (value.match(/^".*"$/)) {
-          return `opts.${name} = ${value}`;
-        } else {
-          return `opts.${name} = ${convertSingleToDoubleQuotes(value)}`;
-        }
+        return `opts.${name} = ${convertSingleToDoubleQuotes(value)}`;
       }
     }
   }
 }
 
 function convertSingleToDoubleQuotes(str) {
+  if (str.match(/^".*"$/)) {
+    return str;
+  }
+
   var result = str;
   result = result.replace(/"/g, "TEMP_REPLACED_DOUBLE_QUOTE");
   result = result.replace(/(?<!(^|[^\\])\\)'/g, '"');

@@ -29,17 +29,83 @@ package io.beautifier.css;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.json.JSONObject;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Data
-@Accessors(fluent = true, chain = true)
-@EqualsAndHashCode(callSuper = true)
 @NonNullByDefault
 public class Options extends io.beautifier.core.Options<Options> {
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	@Accessors(fluent = true, chain = true)
+	@Getter
+	@Setter
+	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
+
+		public @Deprecated @Nullable String selector_separator;
+		public @Nullable Boolean selector_separator_newline;
+		public @Nullable Boolean newline_between_rules;
+		public @Nullable Boolean space_around_selector_separator;
+		public @Nullable Boolean space_around_combinator;
+		public @Nullable BraceStyle brace_style;
+		
+		public Builder() {
+
+		}
+
+		public Builder(io.beautifier.core.Options.Builder<?, ?> parent) {
+			super(parent);
+		}
+
+		@Override
+		public Options build() {
+			Builder target = new Builder();
+			resolveTo(target);
+
+			Options result = new Options(target);
+			result.css = this;
+			result.js = target.js();
+			result.html = target.html();
+			return result;
+		}
+
+		@Override
+		protected void resolveTo(io.beautifier.core.Options.Builder<?, ?> target) {
+			super.resolveTo(target);
+
+			if (target instanceof Builder) {
+				resolveCssTo((Builder) target);
+
+				if (css != null) {
+					css.resolveCoreTo(target);
+					css.resolveCssTo((Builder) target);
+				}
+			}
+		}
+
+		private void resolveCssTo(Builder target) {
+			if (selector_separator_newline != null) {
+				target.selector_separator_newline = selector_separator_newline;
+			}
+			if (newline_between_rules != null) {
+				target.newline_between_rules = newline_between_rules;
+			}
+			if (space_around_selector_separator != null) {
+				target.space_around_selector_separator = space_around_selector_separator;
+			}
+			if (space_around_combinator != null) {
+				target.space_around_combinator = space_around_combinator;
+			}
+			if (brace_style != null) {
+				target.brace_style = brace_style;
+			}
+		}
+
+	}
 
 	/**
 	 * For the {@code preserve-inline} style, see {@link #brace_preserve_inline}.
@@ -51,40 +117,23 @@ public class Options extends io.beautifier.core.Options<Options> {
 		none,
 	}
 
-	@Deprecated @Nullable String selector_separator;
-	boolean selector_separator_newline = true;
-	boolean newline_between_rules = true;
-	boolean space_around_selector_separator;
-	boolean space_around_combinator;
-	BraceStyle brace_style = BraceStyle.collapse;
-	
-	public Options() {
-		
-	}
+	final boolean selector_separator_newline;
+	final boolean newline_between_rules;
+	final boolean space_around_combinator;
+	final BraceStyle brace_style;
 
-	public void apply(String json) {
-		final JSONObject data = new JSONObject(json);
-		for (String key : data.keySet()) {
-			switch (key) {
-				case "indent_size":
-					this.indent_size = data.getInt("indent_size");
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported options key: " + key);
-			}
-		}
-	}
+	public Options(Builder builder) {
+		super(builder);
 
-	@Override
-	protected void prepare() {
-		super.prepare();
-
-		space_around_combinator = space_around_combinator || space_around_selector_separator;
-
+		selector_separator_newline = resolve(builder.selector_separator_newline, true);
+		newline_between_rules = resolve(builder.newline_between_rules, true);
+		space_around_combinator = resolve(builder.space_around_combinator) || resolve(builder.space_around_selector_separator);
+		BraceStyle brace_style = resolve(builder.brace_style, BraceStyle.collapse);
 		if (brace_style != BraceStyle.collapse && brace_style != BraceStyle.expand) {
 			// default to collapse, as only collapse|expand is implemented for now
 			brace_style = BraceStyle.collapse;
 		}
+		this.brace_style = brace_style;
 	}
 
 }

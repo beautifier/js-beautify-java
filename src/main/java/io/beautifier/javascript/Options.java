@@ -28,17 +28,128 @@
 package io.beautifier.javascript;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.json.JSONObject;
+import org.eclipse.jdt.annotation.Nullable;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Data
-@Accessors(fluent = true, chain = true)
-@EqualsAndHashCode(callSuper = true)
 @NonNullByDefault
 public class Options extends io.beautifier.core.Options<Options> {
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	@Accessors(fluent = true, chain = true)
+	@Getter
+	@Setter
+	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
+
+		public @Nullable BraceStyle brace_style;
+		public @Nullable Boolean brace_preserve_inline;
+		public @Nullable Boolean unindent_chained_methods;
+		public @Nullable Boolean break_chained_methods;
+		public @Nullable Boolean space_in_paren;
+		public @Nullable Boolean space_in_empty_paren;
+		public @Nullable Boolean jslint_happy;
+		public @Nullable Boolean space_after_anon_function;
+		public @Nullable Boolean space_after_named_function;
+		public @Nullable Boolean keep_array_indentation;
+		public @Nullable Boolean space_before_conditional;
+		public @Nullable Boolean unescape_strings;
+		public @Nullable Boolean e4x;
+		public @Nullable Boolean comma_first;
+		public @Nullable OperatorPosition operator_position;
+		// For testing of beautify preserve:start directive
+		public @Nullable Boolean test_output_raw;
+
+		public Builder() {
+			
+		}
+
+		public Builder(io.beautifier.core.Options.Builder<?, ?> parent) {
+			super(parent);
+		}
+
+		@Override
+		public Options build() {
+			Builder target = new Builder();
+			resolveTo(target);
+
+			Options result = new Options(target);
+			result.css = target.css();
+			result.js = this;
+			result.html = target.html();
+			return result;
+		}
+
+		@Override
+		protected void resolveTo(io.beautifier.core.Options.Builder<?, ?> target) {
+			super.resolveTo(target);
+
+			if (target instanceof Builder) {
+				resolveJsTo((Builder) target);
+
+				if (js != null) {
+					js.resolveCoreTo(target);
+					js.resolveJsTo((Builder)target);
+				}
+			}
+		}
+
+		private void resolveJsTo(Builder target) {
+			if (brace_style != null) {
+				target.brace_style = brace_style;
+			}
+			if (brace_preserve_inline != null) {
+				target.brace_preserve_inline = brace_preserve_inline;
+			}
+			if (unindent_chained_methods != null) {
+				target.unindent_chained_methods = unindent_chained_methods;
+			}
+			if (break_chained_methods != null) {
+				target.break_chained_methods = break_chained_methods;
+			}
+			if (space_in_paren != null) {
+				target.space_in_paren = space_in_paren;
+			}
+			if (space_in_empty_paren != null) {
+				target.space_in_empty_paren = space_in_empty_paren;
+			}
+			if (jslint_happy != null) {
+				target.jslint_happy = jslint_happy;
+			}
+			if (space_after_anon_function != null) {
+				target.space_after_anon_function = space_after_anon_function;
+			}
+			if (space_after_named_function != null) {
+				target.space_after_named_function = space_after_named_function;
+			}
+			if (keep_array_indentation != null) {
+				target.keep_array_indentation = keep_array_indentation;
+			}
+			if (space_before_conditional != null) {
+				target.space_before_conditional = space_before_conditional;
+			}
+			if (unescape_strings != null) {
+				target.unescape_strings = unescape_strings;
+			}
+			if (e4x != null) {
+				target.e4x = e4x;
+			}
+			if (comma_first != null) {
+				target.comma_first = comma_first;
+			}
+			if (operator_position != null) {
+				target.operator_position = operator_position;
+			}
+			if (test_output_raw != null) {
+				target.test_output_raw = test_output_raw;
+			}
+		}
+
+	}
 
 	/**
 	 * For the {@code preserve-inline} style, see {@link #brace_preserve_inline}.
@@ -56,49 +167,49 @@ public class Options extends io.beautifier.core.Options<Options> {
 		preserveNewline,
 	}
 
-	BraceStyle brace_style = BraceStyle.collapse;
-	boolean brace_preserve_inline;
-	boolean unindent_chained_methods;
-	boolean break_chained_methods;
-	boolean space_in_paren;
-	boolean space_in_empty_paren;
-	boolean jslint_happy;
-	boolean space_after_anon_function;
-	boolean space_after_named_function;
+	final BraceStyle brace_style;
+	final boolean brace_preserve_inline;
+	final boolean unindent_chained_methods;
+	final boolean break_chained_methods;
+	final boolean space_in_paren;
+	final boolean space_in_empty_paren;
+	final boolean jslint_happy;
+	final boolean space_after_anon_function;
+	final boolean space_after_named_function;
 	boolean keep_array_indentation;
-	boolean space_before_conditional;
-	boolean unescape_strings;
-	boolean e4x;
-	boolean comma_first;
-	OperatorPosition operator_position = OperatorPosition.beforeNewline;
+	final boolean space_before_conditional;
+	final boolean unescape_strings;
+	final boolean e4x;
+	final boolean comma_first;
+	final OperatorPosition operator_position;
 	// For testing of beautify preserve:start directive
-	boolean test_output_raw;
+	final boolean test_output_raw;
 
-	public Options() {
+	public Options(Builder builder) {
+		super(builder);
 
-	}
-
-	public void apply(String json) {
-		final JSONObject data = new JSONObject(json);
-		for (String key : data.keySet()) {
-			switch (key) {
-				case "indent_size":
-					this.indent_size = data.getInt("indent_size");
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported options key: " + key);
-			}
-		}
-	}
-
-	@Override
-	protected void prepare() {
-		super.prepare();
-
+		//todo
+		brace_style = resolve(builder.brace_style, BraceStyle.collapse);
+		brace_preserve_inline = resolve(builder.brace_preserve_inline);
+		unindent_chained_methods = resolve(builder.unindent_chained_methods);
+		break_chained_methods = resolve(builder.break_chained_methods);
+		space_in_paren = resolve(builder.space_in_paren);
+		space_in_empty_paren = resolve(builder.space_in_empty_paren);
+		jslint_happy = resolve(builder.jslint_happy);
 		// force this._options.space_after_anon_function to true if this._options.jslint_happy
-		if (this.jslint_happy) {
-			this.space_after_anon_function = true;
+		if (jslint_happy) {
+			space_after_anon_function = true;
+		} else {
+			space_after_anon_function = resolve(builder.space_after_anon_function);
 		}
+		space_after_named_function = resolve(builder.space_after_named_function);
+		keep_array_indentation = resolve(builder.keep_array_indentation);
+		space_before_conditional = resolve(builder.space_before_conditional, true);
+		unescape_strings = resolve(builder.unescape_strings);
+		e4x = resolve(builder.e4x);
+		comma_first = resolve(builder.comma_first);
+		operator_position = resolve(builder.operator_position, OperatorPosition.beforeNewline);
+		test_output_raw = resolve(builder.test_output_raw);
 	}
 	
 }

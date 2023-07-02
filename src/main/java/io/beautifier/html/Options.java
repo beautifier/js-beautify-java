@@ -1,4 +1,3 @@
-/*jshint node:true */
 /*
 
   The MIT License (MIT)
@@ -26,67 +25,224 @@
   SOFTWARE.
 */
 
-'use strict';
+package io.beautifier.html;
 
-var BaseOptions = require('../core/options').Options;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
-function Options(options) {
-  BaseOptions.call(this, options, 'html');
-  if (this.templating.length === 1 && this.templating[0] === 'auto') {
-    this.templating = ['django', 'erb', 'handlebars', 'php'];
-  }
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
-  this.indent_inner_html = this._get_boolean('indent_inner_html');
-  this.indent_body_inner_html = this._get_boolean('indent_body_inner_html', true);
-  this.indent_head_inner_html = this._get_boolean('indent_head_inner_html', true);
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-  this.indent_handlebars = this._get_boolean('indent_handlebars', true);
-  this.wrap_attributes = this._get_selection('wrap_attributes',
-    ['auto', 'force', 'force-aligned', 'force-expand-multiline', 'aligned-multiple', 'preserve', 'preserve-aligned']);
-  this.wrap_attributes_min_attrs = this._get_number('wrap_attributes_min_attrs', 2);
-  this.wrap_attributes_indent_size = this._get_number('wrap_attributes_indent_size', this.indent_size);
-  this.extra_liners = this._get_array('extra_liners', ['head', 'body', '/html']);
+@NonNullByDefault
+public class Options extends io.beautifier.core.Options<Options> {
 
-  // Block vs inline elements
-  // https://developer.mozilla.org/en-US/docs/Web/HTML/Block-level_elements
-  // https://developer.mozilla.org/en-US/docs/Web/HTML/Inline_elements
-  // https://www.w3.org/TR/html5/dom.html#phrasing-content
-  this.inline = this._get_array('inline', [
-    'a', 'abbr', 'area', 'audio', 'b', 'bdi', 'bdo', 'br', 'button', 'canvas', 'cite',
-    'code', 'data', 'datalist', 'del', 'dfn', 'em', 'embed', 'i', 'iframe', 'img',
-    'input', 'ins', 'kbd', 'keygen', 'label', 'map', 'mark', 'math', 'meter', 'noscript',
-    'object', 'output', 'progress', 'q', 'ruby', 's', 'samp', /* 'script', */ 'select', 'small',
-    'span', 'strong', 'sub', 'sup', 'svg', 'template', 'textarea', 'time', 'u', 'var',
-    'video', 'wbr', 'text',
-    // obsolete inline tags
-    'acronym', 'big', 'strike', 'tt'
-  ]);
-  this.void_elements = this._get_array('void_elements', [
-    // HTLM void elements - aka self-closing tags - aka singletons
-    // https://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
-    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen',
-    'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr',
-    // NOTE: Optional tags are too complex for a simple list
-    // they are hard coded in _do_optional_end_element
+	public static Builder builder() {
+		return new Builder();
+	}
 
-    // Doctype and xml elements
-    '!doctype', '?xml',
+	@Accessors(fluent = true, chain = true)
+	@Getter
+	@Setter
+	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
 
-    // obsolete tags
-    // basefont: https://www.computerhope.com/jargon/h/html-basefont-tag.htm
-    // isndex: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/isindex
-    'basefont', 'isindex'
-  ]);
-  this.unformatted = this._get_array('unformatted', []);
-  this.content_unformatted = this._get_array('content_unformatted', [
-    'pre', 'textarea'
-  ]);
-  this.unformatted_content_delimiter = this._get_characters('unformatted_content_delimiter');
-  this.indent_scripts = this._get_selection('indent_scripts', ['normal', 'keep', 'separate']);
+		public @Nullable Boolean indent_inner_html;
+		public @Nullable Boolean indent_body_inner_html;
+		public @Nullable Boolean indent_head_inner_html;
+		public @Nullable Boolean indent_handlebars;
+		public @Nullable WrapAttributes wrap_attributes;
+		public @Nullable Integer wrap_attributes_min_attrs;
+		public @Nullable Integer wrap_attributes_indent_size;
+		public @Nullable String unformatted_content_delimiter;
+		public @Nullable IndentScripts indent_scripts;
+		public @Nullable Set<String> extra_liners;
+		public @Nullable Set<String> inline;
+		public @Nullable Set<String> void_elements;
+		public @Nullable Set<String> unformatted;
+		public @Nullable Set<String> content_unformatted;
+
+		public Builder() {
+
+		}
+
+		public Builder(io.beautifier.core.Options.Builder<?, ?> parent) {
+			super(parent);
+		}
+
+		@Override
+		public Options build() {
+			Builder target = new Builder();
+			resolveTo(target);
+
+			Options result = new Options(target);
+			result.css = target.css();
+			result.js = target.js();
+			result.html = this;
+			return result;
+		}
+
+		@Override
+		protected void resolveTo(io.beautifier.core.Options.Builder<?, ?> target) {
+			super.resolveTo(target);
+
+			if (target instanceof Builder) {
+				resolveHtmlTo((Builder)target);
+				
+				if (html != null) {
+					html.resolveCoreTo(target);
+					html.resolveHtmlTo((Builder)target);
+				}
+			}
+		}
+
+		private void resolveHtmlTo(Builder target) {
+			if (indent_inner_html != null) {
+				target.indent_inner_html = indent_inner_html;
+			}
+			if (indent_body_inner_html != null) {
+				target.indent_body_inner_html = indent_body_inner_html;
+			}
+			if (indent_head_inner_html != null) {
+				target.indent_head_inner_html = indent_head_inner_html;
+			}
+			if (indent_handlebars != null) {
+				target.indent_handlebars = indent_handlebars;
+			}
+			if (wrap_attributes != null) {
+				target.wrap_attributes = wrap_attributes;
+			}
+			if (wrap_attributes_min_attrs != null) {
+				target.wrap_attributes_min_attrs = wrap_attributes_min_attrs;
+			}
+			if (wrap_attributes_indent_size != null) {
+				target.wrap_attributes_indent_size = wrap_attributes_indent_size;
+			}
+			if (unformatted_content_delimiter != null) {
+				target.unformatted_content_delimiter = unformatted_content_delimiter;
+			}
+			if (indent_scripts != null) {
+				target.indent_scripts = indent_scripts;
+			}
+			if (extra_liners != null) {
+				target.extra_liners = extra_liners;
+			}
+			if (inline != null) {
+				target.inline = inline;
+			}
+			if (void_elements != null) {
+				target.void_elements = void_elements;
+			}
+			if (unformatted != null) {
+				target.unformatted = unformatted;
+			}
+			if (content_unformatted != null) {
+				target.content_unformatted = content_unformatted;
+			}
+		}
+
+	}
+
+	public enum WrapAttributes {
+		auto,
+		force,
+		forceAligned,
+		forceExpandMultiline,
+		alignedMultiple,
+		preserve,
+		preserveAligned,
+		;
+
+		public boolean isForce() {
+			return this == WrapAttributes.force || this == WrapAttributes.forceAligned || this == WrapAttributes.forceExpandMultiline;
+		}
+
+		public boolean isPreserve() {
+			return this == WrapAttributes.preserve || this == WrapAttributes.preserveAligned;
+		}
+		
+	}
+
+	public enum IndentScripts {
+		normal,
+		keep,
+		separate,
+	}
+
+	final boolean indent_inner_html;
+	final boolean indent_body_inner_html;
+	final boolean indent_head_inner_html;
+	final boolean indent_handlebars;
+	final WrapAttributes wrap_attributes;
+	final int wrap_attributes_min_attrs;
+	final int wrap_attributes_indent_size;
+	final @Nullable String unformatted_content_delimiter;
+	final IndentScripts indent_scripts;
+
+	final Set<String> extra_liners;
+	final Set<String> inline;
+	final Set<String> void_elements;
+	final Set<String> unformatted;
+	final Set<String> content_unformatted;
+
+	protected Options(Builder builder) {
+		super(builder);
+
+		if (templating.size() == 1 && templating.contains(TemplateLanguage.auto)) {
+			templating = EnumSet.of(TemplateLanguage.django, TemplateLanguage.erb, TemplateLanguage.handlebars, TemplateLanguage.php);
+		}
+
+		indent_inner_html = resolve(builder.indent_inner_html);
+		indent_body_inner_html = resolve(builder.indent_body_inner_html, true);
+		indent_head_inner_html = resolve(builder.indent_head_inner_html, true);
+		indent_handlebars = resolve(builder.indent_handlebars, true);
+		wrap_attributes = resolve(builder.wrap_attributes, WrapAttributes.auto);
+		wrap_attributes_min_attrs = resolve(builder.wrap_attributes_min_attrs, 2);
+		wrap_attributes_indent_size = resolve(builder.wrap_attributes_indent_size, indent_size);
+		unformatted_content_delimiter = resolve(builder.unformatted_content_delimiter, null);
+		indent_scripts = resolve(builder.indent_scripts, IndentScripts.normal);
+		extra_liners = resolve(builder.extra_liners, new HashSet<>(Arrays.asList("head", "body", "/html")));
+
+		// Block vs inline elements
+		// https://developer.mozilla.org/en-US/docs/Web/HTML/Block-level_elements
+		// https://developer.mozilla.org/en-US/docs/Web/HTML/Inline_elements
+		// https://www.w3.org/TR/html5/dom.html#phrasing-content
+		inline = resolve(builder.inline, new HashSet<>(Arrays.asList(
+			"a", "abbr", "area", "audio", "b", "bdi", "bdo", "br", "button", "canvas", "cite",
+			"code", "data", "datalist", "del", "dfn", "em", "embed", "i", "iframe", "img",
+			"input", "ins", "kbd", "keygen", "label", "map", "mark", "math", "meter", "noscript",
+			"object", "output", "progress", "q", "ruby", "s", "samp", /* "script", */ "select", "small",
+			"span", "strong", "sub", "sup", "svg", "template", "textarea", "time", "u", "var",
+			"video", "wbr", "text",
+			// obsolete inline tags
+			"acronym", "big", "strike", "tt"
+		)));
+
+		void_elements = resolve(builder.void_elements, new HashSet<>(Arrays.asList(
+			// HTLM void elements - aka self-closing tags - aka singletons
+			// https://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+			"area", "base", "br", "col", "embed", "hr", "img", "input", "keygen",
+			"link", "menuitem", "meta", "param", "source", "track", "wbr",
+			// NOTE: Optional tags are too complex for a simple list
+			// they are hard coded in _do_optional_end_element
+
+			// Doctype and xml elements
+			"!doctype", "?xml",
+
+			// obsolete tags
+			// basefont: https://www.computerhope.com/jargon/h/html-basefont-tag.htm
+			// isndex: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/isindex
+			"basefont", "isindex"
+		)));
+		unformatted = resolve(builder.unformatted, Collections.emptySet());
+		content_unformatted = resolve(builder.content_unformatted, new HashSet<>(Arrays.asList(
+			"pre", "textarea"
+		)));
+	}
 
 }
-Options.prototype = new BaseOptions();
-
-
-
-module.exports.Options = Options;

@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Objects;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,11 +41,11 @@ import io.beautifier.css.Options.BraceStyle;
 
 public class GeneratedTests {
 
-	private Options opts;
+	private Options.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = new Options();
+		opts = Options.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;
@@ -57,7 +58,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new CSSBeautifier(input, opts).beautify();
+		return new CSSBeautifier(input, opts.build()).beautify();
 	}
 
 	private void test_fragment(String input) {

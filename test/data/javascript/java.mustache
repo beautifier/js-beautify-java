@@ -34,6 +34,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,11 +45,11 @@ import io.beautifier.javascript.Options.OperatorPosition;
 
 public class GeneratedTests {
 
-	private Options opts;
+	private Options.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = new Options();
+		opts = Options.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;
@@ -63,7 +64,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new JavaScriptBeautifier(input, opts).beautify();
+		return new JavaScriptBeautifier(input, opts.build()).beautify();
 	}
 
 	private void test_fragment(String input) {
@@ -134,7 +135,7 @@ public class GeneratedTests {
 		//     indent;
 		// }
 
-		var current_indent_size = opts.indent_size;
+		var current_indent_size = opts.build().indent_size;
 		if (current_indent_size == 4 && input != null && !input.isEmpty()) {
 			wrapped_input = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(input).replaceAll("    $1") + "\n    foo = bar;\n}";
 			wrapped_expectation = "{\n" + Pattern.compile("^(.+)$", Pattern.MULTILINE).matcher(expectation).replaceAll("    $1") + "\n    foo = bar;\n}";

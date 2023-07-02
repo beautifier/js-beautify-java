@@ -1,4 +1,4 @@
-package io.beautifier.css;
+package io.beautifier.html;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -12,8 +12,9 @@ public class PerformanceTests {
 	
 	@Test
 	void github() throws IOException {
-		String input = readString(getClass().getResourceAsStream("github.css"));
-		String result = new CSSBeautifier(input, Options.builder().indent_size(4).build()).beautify();
+		String input = readString(getClass().getResourceAsStream("html-with-base64image.html"));
+		String result = new HTMLBeautifier(input).beautify();
+		System.out.println(result);
 		assertNotEquals(input, result);
 	}
 

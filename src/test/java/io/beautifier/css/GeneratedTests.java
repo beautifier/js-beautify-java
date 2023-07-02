@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Objects;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,11 +44,11 @@ import io.beautifier.css.Options.BraceStyle;
 
 public class GeneratedTests {
 
-	private Options opts;
+	private Options.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = new Options();
+		opts = Options.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;
@@ -67,7 +68,7 @@ public class GeneratedTests {
 
 	private String test_beautifier(String input)
 	{
-		return new CSSBeautifier(input, opts).beautify();
+		return new CSSBeautifier(input, opts.build()).beautify();
 	}
 
 	private void test_fragment(String input) {
@@ -401,8 +402,8 @@ public class GeneratedTests {
 	void Support_simple_language_specific_option_inheritance_overriding_indent_char_indent_size_4_js_indent_size_3_css_indent_size_5_() {
 		opts.indent_char = " ";
 		opts.indent_size = 4;
-		// opts.js = { 'indent_size': 3 } // disabled as not testing javascript;
-		opts.apply("{ 'indent_size': 5 }");
+		opts.js().apply(new JSONObject("{ 'indent_size': 3 }"));
+		opts.css().apply(new JSONObject("{ 'indent_size': 5 }"));
 		t(
             ".selector {\n" +
             "     font-size: 12px;\n" +
@@ -414,7 +415,7 @@ public class GeneratedTests {
 	void Support_simple_language_specific_option_inheritance_overriding_indent_char_indent_size_4_html_js_indent_size_3_css_indent_size_5_() {
 		opts.indent_char = " ";
 		opts.indent_size = 4;
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } } // disabled as not testing html;
+		opts.html().apply(new JSONObject("{ 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } }"));
 		t(
             ".selector {\n" +
             "    font-size: 12px;\n" +
@@ -426,9 +427,9 @@ public class GeneratedTests {
 	void Support_simple_language_specific_option_inheritance_overriding_indent_char_indent_size_9_html_js_indent_size_3_css_indent_size_8_indent_size_2_js_indent_size_5_css_indent_size_3_() {
 		opts.indent_char = " ";
 		opts.indent_size = 9;
-		// opts.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 8 }, 'indent_size': 2} // disabled as not testing html;
-		// opts.js = { 'indent_size': 5 } // disabled as not testing javascript;
-		opts.apply("{ 'indent_size': 3 }");
+		opts.html().apply(new JSONObject("{ 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 8 }, 'indent_size': 2}"));
+		opts.js().apply(new JSONObject("{ 'indent_size': 5 }"));
+		opts.css().apply(new JSONObject("{ 'indent_size': 3 }"));
 		t(
             ".selector {\n" +
             "   font-size: 12px;\n" +
@@ -2109,7 +2110,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_() {
+	void Comments_preserve_newlines_false_newline_between_rules_false_() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -2412,7 +2413,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_1() {
+	void Comments_preserve_newlines_false_newline_between_rules_false_1() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -3082,7 +3083,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_2() {
+	void Comments_preserve_newlines_false_newline_between_rules_false_2() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -3752,7 +3753,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_3() {
+	void Comments_preserve_newlines_true_newline_between_rules_false_() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -4055,7 +4056,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_4() {
+	void Comments_preserve_newlines_true_newline_between_rules_false_1() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -4445,7 +4446,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_5() {
+	void Comments_preserve_newlines_true_newline_between_rules_false_2() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -5369,7 +5370,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"false\")")
-	void _name_matrix_context_string_matrix_context_string_6() {
+	void Comments_preserve_newlines_true_newline_between_rules_false_3() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = false;
 		t("/* header comment newlines on */");
@@ -6243,7 +6244,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_7() {
+	void Comments_preserve_newlines_false_newline_between_rules_true_() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -6565,7 +6566,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_8() {
+	void Comments_preserve_newlines_false_newline_between_rules_true_1() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -7254,7 +7255,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"false\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_9() {
+	void Comments_preserve_newlines_false_newline_between_rules_true_2() {
 		opts.preserve_newlines = false;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -7943,7 +7944,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_10() {
+	void Comments_preserve_newlines_true_newline_between_rules_true_() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -8265,7 +8266,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_11() {
+	void Comments_preserve_newlines_true_newline_between_rules_true_1() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -8692,7 +8693,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_12() {
+	void Comments_preserve_newlines_true_newline_between_rules_true_2() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");
@@ -9566,7 +9567,7 @@ public class GeneratedTests {
 
 	@Test
 	@DisplayName("Comments - (preserve_newlines = \"true\", newline_between_rules = \"true\")")
-	void _name_matrix_context_string_matrix_context_string_13() {
+	void Comments_preserve_newlines_true_newline_between_rules_true_3() {
 		opts.preserve_newlines = true;
 		opts.newline_between_rules = true;
 		t("/* header comment newlines on */");

@@ -25,42 +25,26 @@
   SOFTWARE.
 */
 
-package io.beautifier.core;
-
-import java.util.Map;
+package io.beautifier.html;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
+import io.beautifier.html.Tokenizer.TOKEN;
+
 @NonNullByDefault
-public class Token<E extends Enum<?>, SELF extends Token<E, SELF>> {
+class Token extends io.beautifier.core.Token<Tokenizer.TOKEN, Token> {
+
+	Token(TOKEN type, String text) {
+		super(type, text);
+	}
+
+	Token(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
+		super(type, text, newlines, whitespace_before);
+	}
+
+	static Token createToken(TOKEN type, String text, int newlines, @Nullable String whitespace_before) {
+		return new Token(type, text, newlines, whitespace_before);
+	}
 	
-	public E type;
-	public String text;
-	// comments_before are
-	// comments that have a new line before them
-	// and may or may not have a newline after
-	// this is a set of comments before
-	public @Nullable TokenStream<E, SELF> comments_before; /* inline comment*/
-	public int newlines;
-	public String whitespace_before;
-	public @Nullable SELF parent;
-	public @Nullable SELF next;
-	public @Nullable SELF previous;
-	public @Nullable SELF opened;
-	public @Nullable SELF closed;
-	public @Nullable Map<String, String> directives;
-
-	public Token(E type, String text) {
-		this(type, text, 0, null);
-	}
-
-	public Token(E type, String text, int newlines, @Nullable String whitespace_before) {
-		this.type = type;
-		this.text = text;
-		this.newlines = newlines;
-
-		this.whitespace_before = whitespace_before != null ? whitespace_before : "";
-	}
-
 }

@@ -30,9 +30,6 @@ exports.test_data = {
     { name: "indent_char", value: "' '" },
     { name: "indent_with_tabs", value: "false" },
     { name: "preserve_newlines", value: "true" },
-    { name: "jslint_happy", value: "false" },
-    { name: "keep_array_indentation", value: "false" },
-    { name: "brace_style", value: "'collapse'" },
     { name: "extra_liners", value: "['html', 'head', '/html']" }
   ],
   groups: [{
