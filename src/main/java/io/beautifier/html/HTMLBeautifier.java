@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -45,7 +44,6 @@ import io.beautifier.core.TokenStream;
 import io.beautifier.html.Options.IndentScripts;
 import io.beautifier.html.Options.WrapAttributes;
 import io.beautifier.html.Tokenizer.TOKEN;
-import io.beautifier.javascript.JavaScriptBeautifier;
 
 @NonNullByDefault
 public class HTMLBeautifier {
@@ -316,6 +314,10 @@ public class HTMLBeautifier {
 
 	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
 		return new HTMLBeautifier(source_text, options.html().build()).beautify();
+	}
+
+	public static Options.Builder options() {
+		return Options.builder();
 	}
 
 	public HTMLBeautifier(@Nullable String source_text) {

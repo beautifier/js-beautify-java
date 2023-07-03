@@ -90,6 +90,10 @@ public class CSSBeautifier implements Beautifier {
 		return new CSSBeautifier(source_text, options.css().build()).beautify();
 	}
 
+	public static Options.Builder options() {
+		return Options.builder();
+	}
+
 	public CSSBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}

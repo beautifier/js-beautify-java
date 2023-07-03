@@ -41,7 +41,6 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.Beautifier;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
-import io.beautifier.css.CSSBeautifier;
 import io.beautifier.javascript.Options.BraceStyle;
 import io.beautifier.javascript.Options.OperatorPosition;
 import io.beautifier.javascript.Tokenizer.TOKEN;
@@ -149,6 +148,10 @@ public class JavaScriptBeautifier implements Beautifier {
 
 	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
 		return new JavaScriptBeautifier(source_text, options.js().build()).beautify();
+	}
+
+	public static Options.Builder options() {
+		return Options.builder();
 	}
 
 	public JavaScriptBeautifier(@Nullable String source_text) {
