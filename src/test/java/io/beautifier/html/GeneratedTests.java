@@ -7811,8 +7811,6 @@ public class GeneratedTests {
 	@DisplayName("Support simple language specific option inheritance/overriding - (html = \"{ \"js\": { \"indent_size\": 3 }, \"css\": { \"indent_size\": 5 } }\")")
 	void Support_simple_language_specific_option_inheritance_overriding_html_js_indent_size_3_css_indent_size_5_() {
 		opts.html().apply(new JSONObject("{ 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } }"));
-            opts.js().apply(new JSONObject("{ 'indent_size': 3 }"));
-            opts.css().apply(new JSONObject("{ 'indent_size': 5 }"));
 		test_fragment(
             "<head>\n" +
             "    <script>\n" +
