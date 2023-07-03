@@ -41,9 +41,11 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.BeautifierFunction;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
+import io.beautifier.css.CSSBeautifier;
 import io.beautifier.html.HTMLOptions.IndentScripts;
 import io.beautifier.html.HTMLOptions.WrapAttributes;
 import io.beautifier.html.Tokenizer.TOKEN;
+import io.beautifier.javascript.JavaScriptBeautifier;
 
 @NonNullByDefault
 public class HTMLBeautifier {
@@ -313,7 +315,7 @@ public class HTMLBeautifier {
 	private final boolean _is_wrap_attributes_preserve_aligned;
 
 	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
-		return new HTMLBeautifier(source_text, options.html().build()).beautify();
+		return new HTMLBeautifier(source_text, options.html().build(), JavaScriptBeautifier::beautify, CSSBeautifier::beautify).beautify();
 	}
 
 	public static HTMLOptions.Builder options() {
