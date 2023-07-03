@@ -41,8 +41,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.BeautifierFunction;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
-import io.beautifier.html.Options.IndentScripts;
-import io.beautifier.html.Options.WrapAttributes;
+import io.beautifier.html.HTMLOptions.IndentScripts;
+import io.beautifier.html.HTMLOptions.WrapAttributes;
 import io.beautifier.html.Tokenizer.TOKEN;
 
 @NonNullByDefault
@@ -58,7 +58,7 @@ public class HTMLBeautifier {
 		private boolean preserve_newlines;
 		private Output _output;
 
-		Printer(Options options, String base_indent_string) { //handles input/output and some other printing functions
+		Printer(HTMLOptions options, String base_indent_string) { //handles input/output and some other printing functions
 
 			this.indent_level = 0;
 			this.alignment_size = 0;
@@ -300,7 +300,7 @@ public class HTMLBeautifier {
 	}
 
 	private String _source_text;
-	private Options _options;
+	private HTMLOptions _options;
 	private @Nullable BeautifierFunction _js_beautify;
 	private @Nullable BeautifierFunction _css_beautify;
 	private @Nullable TagStack _tag_stack;
@@ -316,19 +316,19 @@ public class HTMLBeautifier {
 		return new HTMLBeautifier(source_text, options.html().build()).beautify();
 	}
 
-	public static Options.Builder options() {
-		return Options.builder();
+	public static HTMLOptions.Builder options() {
+		return HTMLOptions.builder();
 	}
 
 	public HTMLBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
 	
-	public HTMLBeautifier(@Nullable String source_text, @Nullable Options options) {
+	public HTMLBeautifier(@Nullable String source_text, @Nullable HTMLOptions options) {
 		this(source_text, options, null, null);
 	}
 
-	public HTMLBeautifier(@Nullable String source_text, @Nullable Options options, @Nullable BeautifierFunction js_beautify, @Nullable BeautifierFunction css_beautify) {
+	public HTMLBeautifier(@Nullable String source_text, @Nullable HTMLOptions options, @Nullable BeautifierFunction js_beautify, @Nullable BeautifierFunction css_beautify) {
 	// function Beautifier(source_text, options, js_beautify, css_beautify) {
 		//Wrapper function to invoke all the necessary constructors and deal with the output.
 		this._source_text = Objects.toString(source_text, "");;
@@ -338,7 +338,7 @@ public class HTMLBeautifier {
 
 		// Allow the setting of language/file-type specific options
 		// with inheritance of overall settings
-		var optionHtml = options != null ? options : Options.builder().build();
+		var optionHtml = options != null ? options : HTMLOptions.builder().build();
 
 		this._options = optionHtml;
 

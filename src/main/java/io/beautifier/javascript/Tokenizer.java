@@ -130,7 +130,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 	private boolean has_char_escapes;
 
 	private final Patterns __patterns;
-	private final Options _options;
+	private final JavaScriptOptions _options;
 
 	private class Patterns {
 		private TemplatablePattern template;
@@ -174,7 +174,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 		}
 	}
 
-	public Tokenizer(String input_string, Options options) {
+	public Tokenizer(String input_string, JavaScriptOptions options) {
 		super(input_string, Token::createToken, TOKEN.START, TOKEN.RAW, TOKEN.EOF, options);
 
 		this._options = options;

@@ -35,7 +35,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @NonNullByDefault
-public class Options extends io.beautifier.core.Options<Options> {
+public class JavaScriptOptions extends io.beautifier.core.Options<JavaScriptOptions> {
 
 	public static Builder builder() {
 		return new Builder();
@@ -44,7 +44,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	@Accessors(fluent = true, chain = true)
 	@Getter
 	@Setter
-	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
+	public static class Builder extends io.beautifier.core.Options.Builder<JavaScriptOptions, Builder> {
 
 		public @Nullable BraceStyle brace_style;
 		public @Nullable Boolean brace_preserve_inline;
@@ -73,11 +73,11 @@ public class Options extends io.beautifier.core.Options<Options> {
 		}
 
 		@Override
-		public Options build() {
+		public JavaScriptOptions build() {
 			Builder target = new Builder();
 			resolveTo(target);
 
-			Options result = new Options(target);
+			JavaScriptOptions result = new JavaScriptOptions(target);
 			result.css = target.css();
 			result.js = this;
 			result.html = target.html();
@@ -185,7 +185,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	// For testing of beautify preserve:start directive
 	final boolean test_output_raw;
 
-	public Options(Builder builder) {
+	public JavaScriptOptions(Builder builder) {
 		super(builder);
 
 		//todo

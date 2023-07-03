@@ -41,7 +41,7 @@ import io.beautifier.core.Beautifier;
 import io.beautifier.core.Directives;
 import io.beautifier.core.InputScanner;
 import io.beautifier.core.Output;
-import io.beautifier.css.Options.BraceStyle;
+import io.beautifier.css.CSSOptions.BraceStyle;
 
 @NonNullByDefault
 public class CSSBeautifier implements Beautifier {
@@ -78,7 +78,7 @@ public class CSSBeautifier implements Beautifier {
 	};
 
 	private String _source_text;
-	private final Options _options;
+	private final CSSOptions _options;
 
 	private @Nullable String _ch;
 	private @Nullable InputScanner _input;
@@ -90,19 +90,19 @@ public class CSSBeautifier implements Beautifier {
 		return new CSSBeautifier(source_text, options.css().build()).beautify();
 	}
 
-	public static Options.Builder options() {
-		return Options.builder();
+	public static CSSOptions.Builder options() {
+		return CSSOptions.builder();
 	}
 
 	public CSSBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
 
-	public CSSBeautifier(@Nullable String source_text, @Nullable Options options) {
+	public CSSBeautifier(@Nullable String source_text, @Nullable CSSOptions options) {
 		this._source_text = source_text != null ? source_text : "";
 		// Allow the setting of language/file-type specific options
 		// with inheritance of overall settings
-		this._options = options != null ? options : Options.builder().build();
+		this._options = options != null ? options : CSSOptions.builder().build();
 		this._ch = null;
 		this._input = null;
 	}

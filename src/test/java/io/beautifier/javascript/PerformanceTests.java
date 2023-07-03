@@ -13,21 +13,21 @@ public class PerformanceTests {
 	@Test
 	void underscore() throws IOException {
 		String input = readString(getClass().getResourceAsStream("underscore.js"));
-		String result = new JavaScriptBeautifier(input, Options.builder().wrap_line_length(80).build()).beautify();
+		String result = new JavaScriptBeautifier(input, JavaScriptOptions.builder().wrap_line_length(80).build()).beautify();
 		assertNotEquals(input, result);
 	}
 	
 	@Test
 	void underscoreMin() throws IOException {
 		String input = readString(getClass().getResourceAsStream("underscore-min.js"));
-		String result = new JavaScriptBeautifier(input, Options.builder().wrap_line_length(80).build()).beautify();
+		String result = new JavaScriptBeautifier(input, JavaScriptOptions.builder().wrap_line_length(80).build()).beautify();
 		assertNotEquals(input, result);
 	}
 	
 	@Test
 	void github() throws IOException {
 		String input = readString(getClass().getResourceAsStream("github-min.js"));
-		String result = new JavaScriptBeautifier(input, Options.builder().wrap_line_length(80).build()).beautify();
+		String result = new JavaScriptBeautifier(input, JavaScriptOptions.builder().wrap_line_length(80).build()).beautify();
 		assertNotEquals(input, result);
 	}
 

@@ -60,7 +60,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 
 
 	private final Patterns __patterns;
-	private final Options _options;
+	private final HTMLOptions _options;
 
 	private class Patterns {
 		private TemplatablePattern word;
@@ -112,7 +112,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	private String _current_tag_name;
 	private String _unformatted_content_delimiter;
 
-	public Tokenizer(String input_string, Options options) {
+	public Tokenizer(String input_string, HTMLOptions options) {
 		super(input_string, Token::createToken, TOKEN.START, TOKEN.RAW, TOKEN.EOF, options);
 
 		this._options = options;

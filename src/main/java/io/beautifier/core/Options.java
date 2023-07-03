@@ -68,9 +68,9 @@ public abstract class Options<SELF extends Options<SELF>> {
 		public @Nullable Integer wrap_line_length;
 		public @Nullable Boolean indent_empty_lines;
 		public @Nullable EnumSet<TemplateLanguage> templating;
-		protected io.beautifier.css.Options. @Nullable Builder css;
-		protected io.beautifier.html.Options. @Nullable Builder html;
-		protected io.beautifier.javascript.Options. @Nullable Builder js;
+		protected io.beautifier.css.CSSOptions. @Nullable Builder css;
+		protected io.beautifier.html.HTMLOptions. @Nullable Builder html;
+		protected io.beautifier.javascript.JavaScriptOptions. @Nullable Builder js;
 		protected final @Nullable Builder<?, ?> parent;
 
 		public Builder() {
@@ -146,23 +146,23 @@ public abstract class Options<SELF extends Options<SELF>> {
 			}
 		}
 
-		public io.beautifier.css.Options.Builder css() {
+		public io.beautifier.css.CSSOptions.Builder css() {
 			if (this.css == null) {
-				this.css = new io.beautifier.css.Options.Builder(this);
+				this.css = new io.beautifier.css.CSSOptions.Builder(this);
 			}
 			return this.css;
 		}
 
-		public io.beautifier.javascript.Options.Builder js() {
+		public io.beautifier.javascript.JavaScriptOptions.Builder js() {
 			if (this.js == null) {
-				this.js = new io.beautifier.javascript.Options.Builder(this);
+				this.js = new io.beautifier.javascript.JavaScriptOptions.Builder(this);
 			}
 			return this.js;
 		}
 
-		public io.beautifier.html.Options.Builder html() {
+		public io.beautifier.html.HTMLOptions.Builder html() {
 			if (this.html == null) {
-				this.html = new io.beautifier.html.Options.Builder(this);
+				this.html = new io.beautifier.html.HTMLOptions.Builder(this);
 			}
 			return this.html;
 		}
@@ -276,9 +276,9 @@ public abstract class Options<SELF extends Options<SELF>> {
 	public boolean indent_empty_lines;
 	public EnumSet<TemplateLanguage> templating;
 
-	protected io.beautifier.javascript.Options.Builder js;
-	protected io.beautifier.css.Options.Builder css;
-	protected io.beautifier.html.Options.Builder html;
+	protected io.beautifier.javascript.JavaScriptOptions.Builder js;
+	protected io.beautifier.css.CSSOptions.Builder css;
+	protected io.beautifier.html.HTMLOptions.Builder html;
 
 	protected Options(Builder<?, ?> builder) {
 		disabled = resolve(builder.disabled);
@@ -317,15 +317,15 @@ public abstract class Options<SELF extends Options<SELF>> {
 		templating = resolve(builder.templating, EnumSet.of(TemplateLanguage.auto));
 	}
 
-	public io.beautifier.javascript.Options.Builder js() {
+	public io.beautifier.javascript.JavaScriptOptions.Builder js() {
 		return js;
 	}
 
-	public io.beautifier.css.Options.Builder css() {
+	public io.beautifier.css.CSSOptions.Builder css() {
 		return css;
 	}
 
-	public io.beautifier.html.Options.Builder html() {
+	public io.beautifier.html.HTMLOptions.Builder html() {
 		return html;
 	}
 

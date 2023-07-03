@@ -40,15 +40,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.beautifier.css.Options.BraceStyle;
+import io.beautifier.css.CSSOptions.BraceStyle;
 
 public class GeneratedTests {
 
-	private Options.Builder opts;
+	private CSSOptions.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = Options.builder();
+		opts = CSSOptions.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;

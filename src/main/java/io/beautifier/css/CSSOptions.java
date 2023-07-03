@@ -35,7 +35,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @NonNullByDefault
-public class Options extends io.beautifier.core.Options<Options> {
+public class CSSOptions extends io.beautifier.core.Options<CSSOptions> {
 
 	public static Builder builder() {
 		return new Builder();
@@ -44,7 +44,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	@Accessors(fluent = true, chain = true)
 	@Getter
 	@Setter
-	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
+	public static class Builder extends io.beautifier.core.Options.Builder<CSSOptions, Builder> {
 
 		public @Deprecated @Nullable String selector_separator;
 		public @Nullable Boolean selector_separator_newline;
@@ -62,11 +62,11 @@ public class Options extends io.beautifier.core.Options<Options> {
 		}
 
 		@Override
-		public Options build() {
+		public CSSOptions build() {
 			Builder target = new Builder();
 			resolveTo(target);
 
-			Options result = new Options(target);
+			CSSOptions result = new CSSOptions(target);
 			result.css = this;
 			result.js = target.js();
 			result.html = target.html();
@@ -122,7 +122,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	final boolean space_around_combinator;
 	final BraceStyle brace_style;
 
-	public Options(Builder builder) {
+	public CSSOptions(Builder builder) {
 		super(builder);
 
 		selector_separator_newline = resolve(builder.selector_separator_newline, true);

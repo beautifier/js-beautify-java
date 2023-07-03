@@ -13,7 +13,7 @@ public class PerformanceTests {
 	@Test
 	void github() throws IOException {
 		String input = readString(getClass().getResourceAsStream("github.css"));
-		String result = new CSSBeautifier(input, Options.builder().indent_size(4).build()).beautify();
+		String result = new CSSBeautifier(input, CSSOptions.builder().indent_size(4).build()).beautify();
 		assertNotEquals(input, result);
 	}
 

@@ -41,8 +41,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import io.beautifier.core.Beautifier;
 import io.beautifier.core.Output;
 import io.beautifier.core.TokenStream;
-import io.beautifier.javascript.Options.BraceStyle;
-import io.beautifier.javascript.Options.OperatorPosition;
+import io.beautifier.javascript.JavaScriptOptions.BraceStyle;
+import io.beautifier.javascript.JavaScriptOptions.OperatorPosition;
 import io.beautifier.javascript.Tokenizer.TOKEN;
 
 @NonNullByDefault
@@ -144,21 +144,21 @@ public class JavaScriptBeautifier implements Beautifier {
 	private @Nullable Frame _flags;
 	private @Nullable Frame _previous_flags;
 	private @Nullable List<Frame> _flag_store;
-	private Options _options;
+	private JavaScriptOptions _options;
 
 	public static String beautify(@Nullable String source_text, io.beautifier.core.Options<?> options) {
 		return new JavaScriptBeautifier(source_text, options.js().build()).beautify();
 	}
 
-	public static Options.Builder options() {
-		return Options.builder();
+	public static JavaScriptOptions.Builder options() {
+		return JavaScriptOptions.builder();
 	}
 
 	public JavaScriptBeautifier(@Nullable String source_text) {
 		this(source_text, null);
 	}
 	
-	public JavaScriptBeautifier(@Nullable String source_text, @Nullable Options options) {
+	public JavaScriptBeautifier(@Nullable String source_text, @Nullable JavaScriptOptions options) {
 		this._source_text = source_text != null ? source_text : "";
 
 		this._output = null;
@@ -168,7 +168,7 @@ public class JavaScriptBeautifier implements Beautifier {
 		this._previous_flags = null;
 
 		this._flag_store = null;
-		this._options = options != null ? options : Options.builder().build();
+		this._options = options != null ? options : JavaScriptOptions.builder().build();
 	}
 
 	static class Frame {

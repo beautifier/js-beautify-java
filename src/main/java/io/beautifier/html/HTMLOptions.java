@@ -41,7 +41,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @NonNullByDefault
-public class Options extends io.beautifier.core.Options<Options> {
+public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 
 	public static Builder builder() {
 		return new Builder();
@@ -50,7 +50,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	@Accessors(fluent = true, chain = true)
 	@Getter
 	@Setter
-	public static class Builder extends io.beautifier.core.Options.Builder<Options, Builder> {
+	public static class Builder extends io.beautifier.core.Options.Builder<HTMLOptions, Builder> {
 
 		public @Nullable Boolean indent_inner_html;
 		public @Nullable Boolean indent_body_inner_html;
@@ -76,11 +76,11 @@ public class Options extends io.beautifier.core.Options<Options> {
 		}
 
 		@Override
-		public Options build() {
+		public HTMLOptions build() {
 			Builder target = new Builder();
 			resolveTo(target);
 
-			Options result = new Options(target);
+			HTMLOptions result = new HTMLOptions(target);
 			result.css = target.css();
 			result.js = target.js();
 			result.html = this;
@@ -190,7 +190,7 @@ public class Options extends io.beautifier.core.Options<Options> {
 	final Set<String> unformatted;
 	final Set<String> content_unformatted;
 
-	protected Options(Builder builder) {
+	protected HTMLOptions(Builder builder) {
 		super(builder);
 
 		if (templating.size() == 1 && templating.contains(TemplateLanguage.auto)) {

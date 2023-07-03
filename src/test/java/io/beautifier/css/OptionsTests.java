@@ -6,7 +6,7 @@ public class OptionsTests {
 	
 	@Test
 	void constructOptions() {
-		Options.builder()
+		CSSOptions.builder()
 			.disabled(false)
 			.indent_size(4)
 			.newline_between_rules(true)
