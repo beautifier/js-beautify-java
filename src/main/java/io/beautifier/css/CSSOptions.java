@@ -107,9 +107,6 @@ public class CSSOptions extends io.beautifier.core.Options<CSSOptions> {
 
 	}
 
-	/**
-	 * For the {@code preserve-inline} style, see {@link #brace_preserve_inline}.
-	 */
 	public enum BraceStyle {
 		collapse,
 		expand,
