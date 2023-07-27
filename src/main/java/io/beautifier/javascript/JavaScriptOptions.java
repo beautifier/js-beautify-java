@@ -149,6 +149,85 @@ public class JavaScriptOptions extends io.beautifier.core.Options<JavaScriptOpti
 			}
 		}
 
+		public Builder brace_style(BraceStyle brace_style) {
+			this.brace_style = brace_style;
+			return self();
+		}
+
+		public Builder brace_preserve_inline(Boolean brace_preserve_inline) {
+			this.brace_preserve_inline = brace_preserve_inline;
+			return self();
+		}
+
+		public Builder unindent_chained_methods(Boolean unindent_chained_methods) {
+			this.unindent_chained_methods = unindent_chained_methods;
+			return self();
+		}
+
+		public Builder break_chained_methods(Boolean break_chained_methods) {
+			this.break_chained_methods = break_chained_methods;
+			return self();
+		}
+
+		public Builder space_in_paren(Boolean space_in_paren) {
+			this.space_in_paren = space_in_paren;
+			return self();
+		}
+
+		public Builder space_in_empty_paren(Boolean space_in_empty_paren) {
+			this.space_in_empty_paren = space_in_empty_paren;
+			return self();
+		}
+
+		public Builder jslint_happy(Boolean jslint_happy) {
+			this.jslint_happy = jslint_happy;
+			return self();
+		}
+
+		public Builder space_after_anon_function(Boolean space_after_anon_function) {
+			this.space_after_anon_function = space_after_anon_function;
+			return self();
+		}
+
+		public Builder space_after_named_function(Boolean space_after_named_function) {
+			this.space_after_named_function = space_after_named_function;
+			return self();
+		}
+
+		public Builder keep_array_indentation(Boolean keep_array_indentation) {
+			this.keep_array_indentation = keep_array_indentation;
+			return self();
+		}
+
+		public Builder space_before_conditional(Boolean space_before_conditional) {
+			this.space_before_conditional = space_before_conditional;
+			return self();
+		}
+
+		public Builder unescape_strings(Boolean unescape_strings) {
+			this.unescape_strings = unescape_strings;
+			return self();
+		}
+
+		public Builder e4x(Boolean e4x) {
+			this.e4x = e4x;
+			return self();
+		}
+
+		public Builder comma_first(Boolean comma_first) {
+			this.comma_first = comma_first;
+			return self();
+		}
+
+		public Builder operator_position(OperatorPosition operator_position) {
+			this.operator_position = operator_position;
+			return self();
+		}
+
+		public Builder test_output_raw(Boolean test_output_raw) {
+			this.test_output_raw = test_output_raw;
+			return self();
+		}
 	}
 
 	/**

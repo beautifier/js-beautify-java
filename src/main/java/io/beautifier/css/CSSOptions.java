@@ -105,6 +105,36 @@ public class CSSOptions extends io.beautifier.core.Options<CSSOptions> {
 			}
 		}
 
+		@Deprecated
+		public Builder selector_separator(String selector_separator) {
+			this.selector_separator = selector_separator;
+			return self();
+		}
+		
+		public Builder selector_separator_newline(Boolean selector_separator_newline) {
+			this.selector_separator_newline = selector_separator_newline;
+			return self();
+		}
+
+		public Builder newline_between_rules(Boolean newline_between_rules) {
+			this.newline_between_rules = newline_between_rules;
+			return self();
+		}
+
+		public Builder space_around_selector_separator(Boolean space_around_selector_separator) {
+			this.space_around_selector_separator = space_around_selector_separator;
+			return self();
+		}
+
+		public Builder space_around_combinator(Boolean space_around_combinator) {
+			this.space_around_combinator = space_around_combinator;
+			return self();
+		}
+
+		public Builder BraceStyle(BraceStyle brace_style) {
+			this.brace_style = brace_style;
+			return self();
+		}
 	}
 
 	public enum BraceStyle {

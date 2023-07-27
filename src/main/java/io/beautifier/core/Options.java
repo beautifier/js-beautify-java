@@ -197,7 +197,7 @@ public abstract class Options<SELF extends Options<SELF>> {
 		}
 
 		@SuppressWarnings("unchecked")
-		private SELF self() {
+		protected SELF self() {
 			return (SELF) this;
 		}
 

@@ -146,6 +146,75 @@ public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 			}
 		}
 
+		public Builder indent_inner_html(Boolean indent_inner_html) {
+			this.indent_inner_html = indent_inner_html;
+			return self();
+		}
+
+		public Builder indent_body_inner_html(Boolean indent_body_inner_html) {
+			this.indent_body_inner_html = indent_body_inner_html;
+			return self();
+		}
+
+		public Builder indent_head_inner_html(Boolean indent_head_inner_html) {
+			this.indent_head_inner_html = indent_head_inner_html;
+			return self();
+		}
+
+		public Builder indent_handlebars(Boolean indent_handlebars) {
+			this.indent_handlebars = indent_handlebars;
+			return self();
+		}
+
+		public Builder wrap_attributes(WrapAttributes wrap_attributes) {
+			this.wrap_attributes = wrap_attributes;
+			return self();
+		}
+
+		public Builder wrap_attributes_min_attrs(Integer wrap_attributes_min_attrs) {
+			this.wrap_attributes_min_attrs = wrap_attributes_min_attrs;
+			return self();
+		}
+
+		public Builder wrap_attributes_indent_size(Integer wrap_attributes_indent_size) {
+			this.wrap_attributes_indent_size = wrap_attributes_indent_size;
+			return self();
+		}
+
+		public Builder unformatted_content_delimiter(String unformatted_content_delimiter) {
+			this.unformatted_content_delimiter = unformatted_content_delimiter;
+			return self();
+		}
+
+		public Builder indent_scripts(IndentScripts indent_scripts) {
+			this.indent_scripts = indent_scripts;
+			return self();
+		}
+
+		public Builder extra_liners(Set<String> extra_liners) {
+			this.extra_liners = extra_liners;
+			return self();
+		}
+
+		public Builder inline(Set<String> inline) {
+			this.inline = inline;
+			return self();
+		}
+
+		public Builder void_elements(Set<String> void_elements) {
+			this.void_elements = void_elements;
+			return self();
+		}
+
+		public Builder unformatted(Set<String> unformatted) {
+			this.unformatted = unformatted;
+			return self();
+		}
+
+		public Builder content_unformatted(Set<String> content_unformatted) {
+			this.content_unformatted = content_unformatted;
+			return self();
+		}
 	}
 
 	public enum WrapAttributes {
