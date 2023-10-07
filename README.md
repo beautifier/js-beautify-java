@@ -23,3 +23,11 @@ The Java tests can then be run using Maven:
 ```shell
 mvn test
 ```
+
+## Updating
+
+This port follows `js-beautify` and is periodically synced with the latest changes in that repository, including
+test case changes.
+
+The method is to compare changes in the `js-beautify` repository between the last synced commit and HEAD and then applying the
+changes to this repository. Note that the `tests.js` data files can simply be copied across.
