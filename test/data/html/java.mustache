@@ -44,17 +44,17 @@ import org.junit.jupiter.api.Test;
 
 import io.beautifier.core.Options.TemplateLanguage;
 import io.beautifier.css.CSSBeautifier;
-import io.beautifier.html.Options.IndentScripts;
-import io.beautifier.html.Options.WrapAttributes;
+import io.beautifier.html.HTMLOptions.IndentScripts;
+import io.beautifier.html.HTMLOptions.WrapAttributes;
 import io.beautifier.javascript.JavaScriptBeautifier;
 
 public class GeneratedTests {
 
-	private Options.Builder opts;
+	private HTMLOptions.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = Options.builder();
+		opts = HTMLOptions.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;

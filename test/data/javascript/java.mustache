@@ -40,16 +40,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.beautifier.core.Options.TemplateLanguage;
-import io.beautifier.javascript.Options.BraceStyle;
-import io.beautifier.javascript.Options.OperatorPosition;
+import io.beautifier.javascript.JavaScriptOptions.BraceStyle;
+import io.beautifier.javascript.JavaScriptOptions.OperatorPosition;
 
 public class GeneratedTests {
 
-	private Options.Builder opts;
+	private JavaScriptOptions.Builder opts;
 	
 	@BeforeEach
 	void reset_options() {
-		opts = Options.builder();
+		opts = JavaScriptOptions.builder();
 		opts.indent_size = 4;
 		opts.indent_char = " ";
 		opts.preserve_newlines = true;
