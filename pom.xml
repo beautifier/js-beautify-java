@@ -6,6 +6,7 @@
 	<artifactId>js-beautify</artifactId>
 	<version>0.1.0</version>
 	<name>js-beautify</name>
+	<description>A java port of js-beautify including JavaScript, HTML and CSS beautifiers.</description>
 	<packaging>jar</packaging>
 	<url>https://beautifier.io</url>
 
@@ -108,6 +109,23 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>gpg</executable>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-toolchains-plugin</artifactId>
 				<executions>
 					<execution>
@@ -206,5 +224,33 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/license/mit/</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Karl von Randow</name>
+			<organization>XK72</organization>
+			<organizationUrl>http://xk72.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<scm>
+		<connection>scm:git:git://github.com/beautifier/js-beautify-java.git</connection>
+		<developerConnection>scm:git:ssh://github.com:beautifier/js-beautify-java.git</developerConnection>
+		<url>https://github.com/beautifier/js-beautify-java</url>
+	</scm>
 	
 </project>
