@@ -568,6 +568,9 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 					matched = input_scan.match(Pattern.compile("x([0-9A-Fa-f]{2})"));
 				} else if ("u".equals(input_scan.peek())) {
 					matched = input_scan.match(Pattern.compile("u([0-9A-Fa-f]{4})"));
+					if (matched == null) {
+						matched = input_scan.match(Pattern.compile("u\\{([0-9A-Fa-f]+)\\}"));
+					}
 				} else {
 					out.append('\\');
 					if (input_scan.hasNext()) {
@@ -592,7 +595,10 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 					// leave 0x00...0x1f escaped
 					out.append('\\');
 					out.append(matched.group());
-					continue;
+				} else if (escaped > 0x10FFFF) {
+					// If the escape sequence is out of bounds, keep the original sequence and continue conversion
+					out.append('\\');
+					out.append(matched.group());
 				} else if (escaped == 0x22 || escaped == 0x27 || escaped == 0x5c) {
 					// single-quote, apostrophe, backslash - escape these
 					out.append('\\');

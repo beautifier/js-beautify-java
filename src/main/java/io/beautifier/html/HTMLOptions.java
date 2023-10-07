@@ -63,6 +63,7 @@ public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 		public @Nullable IndentScripts indent_scripts;
 		public @Nullable Set<String> extra_liners;
 		public @Nullable Set<String> inline;
+		public @Nullable Boolean inline_custom_elements;
 		public @Nullable Set<String> void_elements;
 		public @Nullable Set<String> unformatted;
 		public @Nullable Set<String> content_unformatted;
@@ -135,6 +136,9 @@ public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 			if (inline != null) {
 				target.inline = inline;
 			}
+			if (inline_custom_elements != null) {
+				target.inline_custom_elements = inline_custom_elements;
+			}
 			if (void_elements != null) {
 				target.void_elements = void_elements;
 			}
@@ -186,6 +190,7 @@ public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 
 	final Set<String> extra_liners;
 	final Set<String> inline;
+	final boolean inline_custom_elements;
 	final Set<String> void_elements;
 	final Set<String> unformatted;
 	final Set<String> content_unformatted;
@@ -222,6 +227,7 @@ public class HTMLOptions extends io.beautifier.core.Options<HTMLOptions> {
 			// obsolete inline tags
 			"acronym", "big", "strike", "tt"
 		)));
+		inline_custom_elements = resolve(builder.inline_custom_elements, true);
 
 		void_elements = resolve(builder.void_elements, new HashSet<>(Arrays.asList(
 			// HTLM void elements - aka self-closing tags - aka singletons

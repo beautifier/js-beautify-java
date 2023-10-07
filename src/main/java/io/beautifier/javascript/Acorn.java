@@ -44,12 +44,14 @@ class Acorn {
 	//var nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
 	//var nonASCIIidentifier = new RegExp("[" + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "]");
 
-	private static final String identifierStartPattern = "(?:\\\\u[0-9a-fA-F]{4}|[" + baseASCIIidentifierStartChars + nonASCIIidentifierStartChars + "])";
-	private static final String identifierChars = "(?:\\\\u[0-9a-fA-F]{4}|[" + baseASCIIidentifierChars + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "])*";
+	private static final String unicodeEscapeOrCodePoint = "\\\\u[0-9a-fA-F]{4}|\\\\u\\{[0-9a-fA-F]+\\}";
+
+	private static final String identifierStartPattern = "(?:" + unicodeEscapeOrCodePoint + "|[" + baseASCIIidentifierStartChars + nonASCIIidentifierStartChars + "])";
+	private static final String identifierChars = "(?:" + unicodeEscapeOrCodePoint + "|[" + baseASCIIidentifierChars + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "])*";
 
 	public static final Pattern identifier = Pattern.compile(identifierStartPattern + identifierChars);
 	public static final Pattern identifierStart = Pattern.compile(identifierStartPattern);
-	public static final Pattern identifierMatch = Pattern.compile("(?:\\\\u[0-9a-fA-F]{4}|[" + baseASCIIidentifierChars + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "])+");
+	public static final Pattern identifierMatch = Pattern.compile("(?:" + unicodeEscapeOrCodePoint + "|[" + baseASCIIidentifierChars + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "])+");
 
 	private static final Pattern nonASCIIwhitespace = Pattern.compile("[\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]");
 

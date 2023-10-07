@@ -800,7 +800,7 @@ public class HTMLBeautifier {
 
 		parser_token.is_unformatted = !parser_token.tag_complete && this._options.unformatted.contains(parser_token.tag_check);
 		parser_token.is_content_unformatted = !parser_token.is_empty_element && this._options.content_unformatted.contains(parser_token.tag_check);
-		parser_token.is_inline_element = this._options.inline.contains(parser_token.tag_name) || parser_token.tag_name.indexOf("-") != -1 || "{".equals(parser_token.tag_start_char);
+		parser_token.is_inline_element = this._options.inline.contains(parser_token.tag_name) || (this._options.inline_custom_elements && parser_token.tag_name.indexOf("-") != -1) || "{".equals(parser_token.tag_start_char);
 
 		return parser_token;
 	}

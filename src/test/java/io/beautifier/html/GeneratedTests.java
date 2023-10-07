@@ -9330,6 +9330,29 @@ public class GeneratedTests {
 
 
 	@Test
+	@DisplayName("Disables custom elements inlining with inline_custom_elements=false")
+	void Disables_custom_elements_inlining_with_inline_custom_elements_false() {
+		opts.inline_custom_elements = false;
+		bth(
+            "<span>\n" +
+            "    <span>\n" +
+            "        <span>The time for this result is 1:02</span\n" +
+            "        ><time-dot>.</time-dot\n" +
+            "        ><time-decimals>27</time-decimals>\n" +
+            "    </span>\n" +
+            "</span>",
+            //  -- output --
+            "<span>\n" +
+            "    <span>\n" +
+            "        <span>The time for this result is 1:02</span>\n" +
+            "        <time-dot>.</time-dot>\n" +
+            "        <time-decimals>27</time-decimals>\n" +
+            "    </span>\n" +
+            "</span>");
+	}
+
+
+	@Test
 	@DisplayName("New Test Suite")
 	void New_Test_Suite() {
 	}

@@ -298,12 +298,10 @@ public class CSSBeautifier implements Beautifier {
 
 				if (Pattern.compile("[ :]$").matcher(variable).find()) {
 					// we have a variable or pseudo-class, add it and insert one space before continuing
-					variable = this.eatString(": ").replaceFirst("\\s$", "");
+					variable = this.eatString(": ").replaceFirst("\\s+$", "");
 					this.print_string(variable);
 					this._output.space_before_token = true;
 				}
-
-				variable = variable.replaceFirst("\\s$", "");
 
 				// might be sass variable
 				if (parenLevel == 0 && variable.indexOf(':') != -1) {
@@ -324,12 +322,10 @@ public class CSSBeautifier implements Beautifier {
 
 					if (Pattern.compile("[ :]$").matcher(variableOrRule).find()) {
 						// we have a variable or pseudo-class, add it and insert one space before continuing
-						variableOrRule = this.eatString(": ").replaceFirst("\\s$", "");
+						variableOrRule = this.eatString(": ").replaceFirst("\\s+$", "");
 						this.print_string(variableOrRule);
 						this._output.space_before_token = true;
 					}
-
-					variableOrRule = variableOrRule.replaceFirst("\\s$", "");
 
 					// might be less variable
 					if (parenLevel == 0 && variableOrRule.indexOf(':') != -1) {
