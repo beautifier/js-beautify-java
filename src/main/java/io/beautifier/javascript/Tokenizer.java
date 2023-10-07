@@ -517,7 +517,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 					var tagName = match.group(2);
 					var isSingletonTag = (match.group(match.groupCount()) != null && !match.group(match.groupCount()).isEmpty()) || (tagName.length() >= 8 && tagName.substring(0, 8).equals("![CDATA["));
 					if (!isSingletonTag &&
-					(tagName.equals(rootTag) || (isCurlyRoot && !tagName.replaceFirst("^\\{\s+", "{").replaceFirst("\\s+}$", "}").isEmpty()))) {
+					(tagName.equals(rootTag) || (isCurlyRoot && !tagName.replaceFirst("^\\{\\s+", "{").replaceFirst("\\s+}$", "}").isEmpty()))) {
 						if (isEndTag) {
 							--depth;
 						} else {
