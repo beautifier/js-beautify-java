@@ -1,5 +1,7 @@
 # js-beautify Java
 
+[![CI Tests](https://github.com/beautifier/js-beautify-java/actions/workflows/github-actions-build.yml/badge.svg)](https://github.com/beautifier/js-beautify-java/actions/workflows/github-actions-build.yml)
+
 This is a Java port of [`js-beautify`](https://github.com/beautifier/js-beautify).
 
 This port was last synchronized with `js-beautify` on January 12, 2024, to commit [`29b51e08d99edd7c894e0d8bf04b2ceb4d6b1cd1`](https://github.com/beautifier/js-beautify/commit/29b51e08d99edd7c894e0d8bf04b2ceb4d6b1cd1).
