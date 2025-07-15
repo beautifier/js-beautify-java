@@ -456,7 +456,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 		// regex and xml can only appear in specific locations during parsing
 		return (previous_token.type == TOKEN.RESERVED && in_array(previous_token.text, new String @NonNull[] { "return", "case", "throw", "else", "do", "typeof", "yield" })) ||
 			(previous_token.type == TOKEN.END_EXPR && ")".equals(previous_token.text) &&
-			previous_token.opened.previous.type == TOKEN.RESERVED && in_array(previous_token.opened.previous.text, "if", "while", "for")) ||
+			previous_token.opened != null && previous_token.opened.previous.type == TOKEN.RESERVED && in_array(previous_token.opened.previous.text, "if", "while", "for")) ||
 			(EnumSet.of(TOKEN.COMMENT, TOKEN.START_EXPR, TOKEN.START_BLOCK, TOKEN.START,
 			TOKEN.END_BLOCK, TOKEN.OPERATOR, TOKEN.EQUALS, TOKEN.EOF, TOKEN.SEMICOLON, TOKEN.COMMA).contains(previous_token.type)
 			);

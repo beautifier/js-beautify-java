@@ -44,6 +44,8 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	enum TOKEN {
 		TAG_OPEN,
 		TAG_CLOSE,
+		CONTROL_FLOW_OPEN,
+		CONTROL_FLOW_CLOSE,
 		ATTRIBUTE,
 		EQUALS,
 		VALUE,
@@ -64,10 +66,12 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 
 	private class Patterns {
 		private TemplatablePattern word;
+		private TemplatablePattern word_control_flow_close_excluded;
 		private TemplatablePattern single_quote;
 		private TemplatablePattern double_quote;
 		private TemplatablePattern attribute;
 		private TemplatablePattern element_name;
+		private InputScannerPattern<?> angular_control_flow_start;
 		private InputScannerPattern<?> handlebars_comment;
 		private InputScannerPattern<?> handlebars;
 		private InputScannerPattern<?> handlebars_open;
@@ -85,11 +89,13 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			var pattern_reader = new InputScannerPattern<>(_input);
 
 			word = templatable_reader.until(Pattern.compile("[\n\r\t <]"));
+			word_control_flow_close_excluded = templatable_reader.until(Pattern.compile("[\n\r\t <}]"));
 			single_quote = templatable_reader.until_after(Pattern.compile("'"));
 			double_quote = templatable_reader.until_after(Pattern.compile("\""));
 			attribute = templatable_reader.until(Pattern.compile("[\n\r\t =>]|/>"));
 			element_name = templatable_reader.until(Pattern.compile("[\n\r\t >/]"));
 
+			angular_control_flow_start = pattern_reader.matching(Pattern.compile("\\@[a-zA-Z]+[^({]*[({]"));
 			handlebars_comment = pattern_reader.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
 			handlebars = pattern_reader.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
 			handlebars_open = pattern_reader.until(Pattern.compile("[\n\r\t }]"));
@@ -124,6 +130,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 
 		if (this._options.indent_handlebars) {
 			this.__patterns.word = this.__patterns.word.exclude(TemplateLanguage.handlebars);
+			this.__patterns.word_control_flow_close_excluded = this.__patterns.word_control_flow_close_excluded.exclude(TemplateLanguage.handlebars);
 		}
 
 		this._unformatted_content_delimiter = null;
@@ -136,15 +143,17 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 
 	@Override
 	protected boolean _is_opening(Token current_token) {
-		return current_token.type == TOKEN.TAG_OPEN;
+		return current_token.type == TOKEN.TAG_OPEN || current_token.type == TOKEN.CONTROL_FLOW_OPEN;
 	}
 
 	@Override
 	protected boolean _is_closing(Token current_token, @Nullable Token open_token) {
-		return current_token.type == TOKEN.TAG_CLOSE &&
+		return (current_token.type == TOKEN.TAG_CLOSE &&
 			(open_token != null && (
 				((">".equals(current_token.text) || "/>".equals(current_token.text)) && open_token.text.startsWith("<")) ||
-				("}}".equals(current_token.text) && open_token.text.startsWith("{") && open_token.text.substring(1, 2).equals("{"))));
+				("}}".equals(current_token.text) && open_token.text.startsWith("{") && open_token.text.substring(1, 2).equals("{"))))
+			) || (current_token.type == TOKEN.CONTROL_FLOW_CLOSE &&
+			("}".equals(current_token.text) && open_token.text.endsWith("{")));
 	}
 
 	@Override
@@ -172,10 +181,16 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			token = this._read_close(c, open_token);
 		}
 		if (token == null) {
+			token = this._read_script_and_style(c, previous_token);
+		}
+		if (token == null) {
+			token = this._read_control_flows(c, open_token);
+		}
+		if (token == null) {
 			token = this._read_raw_content(c, previous_token, open_token);
 		}
 		if (token == null) {
-			token = this._read_content_word(c);
+			token = this._read_content_word(c, open_token);
 		}
 		if (token == null) {
 			token = this._read_comment_or_cdata(c);
@@ -254,7 +269,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	private Token _read_open(String c, @Nullable Token open_token) {
 		String resulting_string = null;
 		Token token = null;
-		if (open_token == null) {
+		if (open_token == null || open_token.type == TOKEN.CONTROL_FLOW_OPEN) {
 			if ("<".equals(c)) {
 
 				resulting_string = this._input.next();
@@ -272,9 +287,9 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 	private Token _read_open_handlebars(String c, @Nullable Token open_token) {
 		String resulting_string = null;
 		Token token = null;
-		if (open_token == null) {
-			if (this._options.indent_handlebars && "{".equals(c) && "{".equals(this._input.peek(1))) {
-				if ("!".equals(this._input.peek(2))) {
+		if (open_token == null || open_token.type == TOKEN.CONTROL_FLOW_OPEN) {
+			if ((this._options.templating.contains(TemplateLanguage.angular) || this._options.indent_handlebars) && "{".equals(c) && "{".equals(this._input.peek(1))) {
+				if (this._options.indent_handlebars && "!".equals(this._input.peek(2))) {
 					resulting_string = this.__patterns.handlebars_comment.read();
 					if (resulting_string == null || resulting_string.isEmpty()) {
 						resulting_string = this.__patterns.handlebars.read();
@@ -289,11 +304,48 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		return token;
 	}
 
+	private Token _read_control_flows(String c, @Nullable Token open_token) {
+		var resulting_string = "";
+		Token token = null;
+		// Only check for control flows if angular templating is set
+		if (!this._options.templating.contains(TemplateLanguage.angular)) {
+			return token;
+		}
+
+		if ("@".equals(c)) {
+			resulting_string = this.__patterns.angular_control_flow_start.read();
+			if ("".equals(resulting_string)) {
+				return token;
+			}
+
+			var opening_parentheses_count = resulting_string.endsWith("(") ? 1 : 0;
+			var closing_parentheses_count = 0;
+			// The opening brace of the control flow is where the number of opening and closing parentheses equal
+			// e.g. @if({value: true} !== null) { 
+			while (!(resulting_string.endsWith("{") && opening_parentheses_count == closing_parentheses_count)) {
+				var next_char = this._input.next();
+				if (next_char == null) {
+					break;
+				} else if ("(".equals(next_char)) {
+					opening_parentheses_count++;
+				} else if (")".equals(next_char)) {
+					closing_parentheses_count++;
+				}
+				resulting_string += next_char;
+			}
+			token = this._create_token(TOKEN.CONTROL_FLOW_OPEN, resulting_string);
+		} else if ("}".equals(c) && open_token != null && open_token.type == TOKEN.CONTROL_FLOW_OPEN) {
+			resulting_string = this._input.next();
+			token = this._create_token(TOKEN.CONTROL_FLOW_CLOSE, resulting_string);
+		}
+		return token;
+	}
+
 	@Nullable
 	private Token _read_close(String c, @Nullable Token open_token) {
 		String resulting_string = null;
 		Token token = null;
-		if (open_token != null) {
+		if (open_token != null && open_token.type == TOKEN.TAG_OPEN) {
 			if (open_token.text.startsWith("<") && (">".equals(c) || ("/".equals(c) && ">".equals(this._input.peek(1))))) {
 				resulting_string = this._input.next();
 				if ("/".equals(c)) { //  for close tag "/>"
@@ -359,18 +411,8 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			previous_token.opened.text.startsWith("<") && !previous_token.text.startsWith("/")) {
 			// ^^ empty tag has no content 
 			var tag_name = previous_token.opened.text.substring(1, previous_token.opened.text.length()).toLowerCase();
-			if ("script".equals(tag_name) || "style".equals(tag_name)) {
-				// Script and style tags are allowed to have comments wrapping their content
-				// or just have regular content.
-				var token = this._read_comment_or_cdata(c);
-				if (token != null) {
-					token.type = TOKEN.TEXT;
-					return token;
-				}
-				resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\n\r\t ]*?>", Pattern.CASE_INSENSITIVE));
-			} else if (this._is_content_unformatted(tag_name)) {
-
-				resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\n\r\t ]*?>", Pattern.CASE_INSENSITIVE));
+			if (this._is_content_unformatted(tag_name)) {
+				resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\\n\\r\\t ]*?>", Pattern.CASE_INSENSITIVE));
 			}
 		}
 
@@ -381,8 +423,30 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		return null;
 	}
 
+	private Token _read_script_and_style(String c, Token previous_token) {
+		if (previous_token.type == TOKEN.TAG_CLOSE && previous_token.opened.text.startsWith("<") && !previous_token.text.startsWith("/")) {
+			var tag_name = previous_token.opened.text.substring(1).toLowerCase();
+
+			if ("script".equals(tag_name) || "style".equals(tag_name)) {
+				// Script and style tags are allowed to have comments wrapping their content
+				// or just have regular content.
+				var token = this._read_comment_or_cdata(c);
+				if (token != null) {
+					token.type = TOKEN.TEXT;
+					return token;
+				}
+				var resulting_string = this._input.readUntil(Pattern.compile("</" + tag_name + "[\n\r\t ]*?>", Pattern.CASE_INSENSITIVE));
+				if (resulting_string != null && !resulting_string.isEmpty()) {
+					return this._create_token(TOKEN.TEXT, resulting_string);
+				}
+			}
+		}
+
+		return null;
+	}
+
 	@Nullable
-	private Token _read_content_word(String c) {
+	private Token _read_content_word(String c, @Nullable Token open_token) {
 		var resulting_string = "";
 		if (this._options.unformatted_content_delimiter != null && !this._options.unformatted_content_delimiter.isEmpty()) {
 			if (this._options.unformatted_content_delimiter.substring(0, 1).equals(c)) {
@@ -391,7 +455,7 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 		}
 
 		if (resulting_string == null || resulting_string.isEmpty()) {
-			resulting_string = this.__patterns.word.read();
+			resulting_string = (open_token != null && open_token.type == TOKEN.CONTROL_FLOW_OPEN) ? this.__patterns.word_control_flow_close_excluded.read() : this.__patterns.word.read();
 		}
 		if (resulting_string != null && !resulting_string.isEmpty()) {
 			return this._create_token(TOKEN.TEXT, resulting_string);

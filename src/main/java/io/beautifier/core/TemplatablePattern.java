@@ -166,6 +166,10 @@ public class TemplatablePattern extends InputScannerPattern<TemplatablePattern> 
 		if (!this._disabled.contains(TemplateLanguage.handlebars)) {
 			items.add(this.__patterns.handlebars._starting_pattern.pattern());
 		}
+		if (!this._disabled.contains(TemplateLanguage.angular)) {
+			// Handlebars ('{{' and '}}') are also special tokens in Angular)
+			items.add(this.__patterns.handlebars._starting_pattern.pattern());
+		}
 		if (!this._disabled.contains(TemplateLanguage.erb)) {
 			items.add(this.__patterns.erb._starting_pattern.pattern());
 		}

@@ -49,6 +49,7 @@ public abstract class Options<SELF extends Options<SELF>> {
 		handlebars,
 		php,
 		smarty,
+		angular,
 	}
 
 	@Accessors(fluent = true, chain = true)

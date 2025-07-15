@@ -10225,6 +10225,9 @@ public class GeneratedTests {
             "    var bar = 1;\n" +
             "    ~bar ? 0 : 1\n" +
             "}");
+		
+        // Issue #2128 - NPE in python implementation
+        test_fragment(") / a / g");
 	}
 
 
