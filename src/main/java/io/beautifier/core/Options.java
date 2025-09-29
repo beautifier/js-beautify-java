@@ -29,6 +29,7 @@
 package io.beautifier.core;
 
 import java.util.EnumSet;
+import java.util.Iterator;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -169,7 +170,9 @@ public abstract class Options<SELF extends Options<SELF>> {
 		}
 
 		public void apply(JSONObject data) {
-			for (String key : data.keySet()) {
+			final Iterator<String> it = data.keys();
+			while (it.hasNext()) {
+				final String key = it.next();
 				if (!apply(key, data)) {
 					throw new IllegalArgumentException("Unsupported options key: " + key);
 				}
