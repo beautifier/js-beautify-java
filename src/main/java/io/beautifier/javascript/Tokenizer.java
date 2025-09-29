@@ -166,7 +166,7 @@ class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Token> {
 			this.html_comment_end = pattern_reader.matching(Pattern.compile("-->"));
 			this.include = pattern_reader.starting_with(Pattern.compile("#include")).until_after(Acorn.lineBreak);
 			this.shebang = pattern_reader.starting_with(Pattern.compile("#!")).until_after(Acorn.lineBreak);
-			this.xml = pattern_reader.matching(Pattern.compile("[\\s\\S]*?<(/?)([-a-zA-Z:0-9_.]+|\\{[^}]+?}|!\\[CDATA\\[[^\\]]*?\\]\\]|)(\\s*\\{[^}]+?}|\\s+[-a-zA-Z:0-9_.]+|\\s+[-a-zA-Z:0-9_.]+\\s*=\\s*('[^']*'|\"[^\"]*\"|\\{([^{}]|\\{[^}]+?})+?}))*\\s*(/?)\\s*>"));
+			this.xml = pattern_reader.matching(Pattern.compile("[\\s\\S]*?<(/?)([-a-zA-Z:0-9_.]+|\\{[^}]+?\\}|!\\[CDATA\\[[^\\]]*?\\]\\]|)(\\s*\\{[^}]+?\\}|\\s+[-a-zA-Z:0-9_.]+|\\s+[-a-zA-Z:0-9_.]+\\s*=\\s*('[^']*'|\"[^\"]*\"|\\{([^{}]|\\{[^}]+?})+?}))*\\s*(/?)\\s*>"));
 			this.single_quote = templatable.until(Pattern.compile("['\\\\\n\r\u2028\u2029]"));
 			this.double_quote = templatable.until(Pattern.compile("[\"\\\\\n\r\u2028\u2029]"));
 			this.template_text = templatable.until(Pattern.compile("[`\\$]"));

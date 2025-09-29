@@ -57,18 +57,18 @@ public class TemplatablePattern extends InputScannerPattern<TemplatablePattern> 
 		Patterns() {
 			var pattern = new InputScannerPattern<>(_input);
 
-			handlebars_comment = pattern.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
-			handlebars_unescaped = pattern.starting_with(Pattern.compile("\\{\\{\\{")).until_after(Pattern.compile("}}}"));
-			handlebars = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
+			handlebars_comment = pattern.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--\\}\\}"));
+			handlebars_unescaped = pattern.starting_with(Pattern.compile("\\{\\{\\{")).until_after(Pattern.compile("\\}\\}\\}"));
+			handlebars = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("\\}\\}"));
 			php = pattern.starting_with(Pattern.compile("<\\?(?:[= ]|php)")).until_after(Pattern.compile("\\?>"));
 			erb = pattern.starting_with(Pattern.compile("<%[^%]")).until_after(Pattern.compile("[^%]%>"));
 			// django coflicts with handlebars a bit.
-			django = pattern.starting_with(Pattern.compile("\\{%")).until_after(Pattern.compile("%}"));
-			django_value = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
-			django_comment = pattern.starting_with(Pattern.compile("\\{#")).until_after(Pattern.compile("#}"));
-			smarty = pattern.starting_with(Pattern.compile("\\{(?=[^}{\\s\n])")).until_after(Pattern.compile("[^\\s\n]}"));
-			smarty_comment = pattern.starting_with(Pattern.compile("\\{\\*")).until_after(Pattern.compile("\\*}"));
-			smarty_literal = pattern.starting_with(Pattern.compile("\\{literal}")).until_after(Pattern.compile("\\{/literal}"));
+			django = pattern.starting_with(Pattern.compile("\\{%")).until_after(Pattern.compile("%\\}"));
+			django_value = pattern.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("\\}\\}"));
+			django_comment = pattern.starting_with(Pattern.compile("\\{#")).until_after(Pattern.compile("#\\}"));
+			smarty = pattern.starting_with(Pattern.compile("\\{(?=[^}{\\s\n])")).until_after(Pattern.compile("[^\\s\n]\\}"));
+			smarty_comment = pattern.starting_with(Pattern.compile("\\{\\*")).until_after(Pattern.compile("\\*\\}"));
+			smarty_literal = pattern.starting_with(Pattern.compile("\\{literal\\}")).until_after(Pattern.compile("\\{/literal\\}"));
 		}
 	}
 

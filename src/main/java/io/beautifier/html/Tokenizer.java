@@ -96,10 +96,10 @@ public class Tokenizer extends io.beautifier.core.Tokenizer<Tokenizer.TOKEN, Tok
 			element_name = templatable_reader.until(Pattern.compile("[\n\r\t >/]"));
 
 			angular_control_flow_start = pattern_reader.matching(Pattern.compile("\\@[a-zA-Z]+[^({]*[({]"));
-			handlebars_comment = pattern_reader.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--}}"));
-			handlebars = pattern_reader.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("}}"));
+			handlebars_comment = pattern_reader.starting_with(Pattern.compile("\\{\\{!--")).until_after(Pattern.compile("--\\}\\}"));
+			handlebars = pattern_reader.starting_with(Pattern.compile("\\{\\{")).until_after(Pattern.compile("\\}\\}"));
 			handlebars_open = pattern_reader.until(Pattern.compile("[\n\r\t }]"));
-			handlebars_raw_close = pattern_reader.until(Pattern.compile("}}"));
+			handlebars_raw_close = pattern_reader.until(Pattern.compile("\\}\\}"));
 			comment = pattern_reader.starting_with(Pattern.compile("<!--")).until_after(Pattern.compile("-->"));
 			cdata = pattern_reader.starting_with(Pattern.compile("<!\\[CDATA\\[")).until_after(Pattern.compile("]]>"));
 			// https://en.wikipedia.org/wiki/Conditional_comment
