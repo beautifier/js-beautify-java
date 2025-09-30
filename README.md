@@ -33,3 +33,17 @@ test case changes.
 
 The method is to compare changes in the `js-beautify` repository between the last synced commit and HEAD and then applying the
 changes to this repository. Note that the `tests.js` data files can simply be copied across.
+
+## Publishing
+
+As a reminder to those who can publish new releases of this artifact:
+
+* Update the version number manually
+* Commit the version number change
+* Deploy to the central repository:
+
+  ```shell
+  mvn deploy
+  ```
+* The deployment should finish with a "Deployment <UUID> has been validated. To finish publishing visit https://central.sonatype.com/publishing/deployments". You can visit this URL and sign in to observe the process, but it will complete normally by itself.
+* Tag the published commit with the version number, e.g. `v1.0.1`
