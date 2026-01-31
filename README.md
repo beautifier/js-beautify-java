@@ -6,6 +6,19 @@ This is a Java port of [`js-beautify`](https://github.com/beautifier/js-beautify
 
 This port was last synchronized with `js-beautify` on July 15, 2025, to commit [`03e3cc02949b42970ab12c2bfbfb33c7bced8eba`](https://github.com/beautifier/js-beautify/commit/03e3cc02949b42970ab12c2bfbfb33c7bced8eba).
 
+## Usage
+
+js-beautify Java is available in Maven Central. Include it in your project with the following coordinates:
+
+```xml
+<dependency>
+    <groupId>io.beautifier</groupId>
+    <artifactId>js-beautify</artifactId>
+    <version>1.15.4.1</version>
+    <scope>compile</scope>
+</dependency>
+```
+
 ## Testing
 
 Testing data has been copied from the `js-beautify` project into the [`test`](./test) folder,
